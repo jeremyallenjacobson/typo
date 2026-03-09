@@ -17,7 +17,7 @@ docs/             MIL-STD-498 documentation
 ## Documentation
 
 - [PROCRV](docs/PROCRV.md): Operating concept, rationale, and system theory
-- [SCOM](docs/SCOM.md): Author workflow (write, build, test, publish)
+- [Runbook](docs/RUNBOOK.md): Author workflow (write, build, test, publish)
 - [SUM](docs/SUM.md): Reader guide (navigation, dark mode, direct links)
 
 ## License

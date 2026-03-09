@@ -74,7 +74,7 @@ The system has three components:
 
 **Reader flips rapidly.** The reader holds the right arrow or taps rapidly. Each press advances one page instantly. The experience is like fast-forwarding: five taps, five pages. If the reader outruns the preloader (unlikely for adjacent pages), the next page appears as soon as it loads — typically within a fraction of a second.
 
-**Author updates the document.** Author edits src/Y-A-T-P.tex, runs the build script (which auto-patches the TOTAL page count), tests locally, then deploys when satisfied. See docs/SCOM.md for the complete author workflow.
+**Author updates the document.** Author edits src/Y-A-T-P.tex, runs the build script (which auto-patches the TOTAL page count), tests locally, then deploys when satisfied. See docs/RUNBOOK.md for the complete author workflow.
 
 ## Section 7: Impacts
 
@@ -102,7 +102,7 @@ The following principles emerged from the development process. They are not pres
 
 **5. Invisible infrastructure.** The HTML, JavaScript, and CSS in the viewer are invisible. The reader does not know they exist. There are no buttons, no sidebars, no browser-styled UI elements. The page fills the screen. Dark mode is toggled by a single keypress with no settings panel. The page indicator appears briefly and vanishes. The system's infrastructure should be felt, not seen.
 
-**6. The README is a pointer, not a summary.** The README links to the article and to the documentation. It does not re-explain or summarize what is already written in the docs. Each piece of knowledge lives in exactly one place: the operating concept in PROCRV, the author workflow in SCOM, the reader guide in SUM. The README points the reader there. Duplicating content across documents creates drift and maintenance burden.
+**6. The README is a pointer, not a summary.** The README links to the article and to the documentation. It does not re-explain or summarize what is already written in the docs. Each piece of knowledge lives in exactly one place: the operating concept in PROCRV, the author workflow in the Runbook, the reader guide in SUM. The README points the reader there. Duplicating content across documents creates drift and maintenance burden.
 
 ### Naur's Criteria Applied
 

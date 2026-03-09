@@ -24,6 +24,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 - Direct page linking via URL hash
 - Deployed first article "Yet Another Theory of Programming" at jeremyjacobson.dev/yatp/
 - Cloudflare Pages hosting at jeremyjacobson.dev
-- MIL-STD-498 documentation: PROCRV, SUM, SCOM
+- MIL-STD-498 documentation: PROCRV, SUM, Runbook
 - LaTeX-rendered logo
 - MIT license
