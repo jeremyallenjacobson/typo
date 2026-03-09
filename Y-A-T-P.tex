@@ -1,0 +1,277 @@
+% !TEX program = pdflatex
+\documentclass[12pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{refcount}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{xurl}
+\setlist{nosep}
+\titleformat{\section}{\large\bfseries}{}{0em}{}
+\titlespacing*{\section}{0pt}{1ex}{0.6ex}
+
+% --- math (Fourier) ---
+\usepackage{fourier}
+
+% --- mono (Latin Modern Mono) ---
+\usepackage{lmodern}
+\renewcommand{\ttdefault}{lmtt}
+
+% --- text (EB Garamond) ---
+\usepackage[lining]{ebgaramond}
+
+% --- math/theorem environments ---
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{microtype}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+% --- page navigation for SVG output ---
+\newcommand{\svgname}{Y-A-T-P}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[C]{%
+  \small
+  \ifnum\value{page}>1
+    \href{\svgname-\the\numexpr\value{page}-1\relax.svg}{$\langle$\,Prev}%
+    \quad\quad
+  \fi
+  \thepage\,/\,\pageref*{LastPage}%
+  \ifnum\value{page}<\getpagerefnumber{LastPage}\relax
+    \quad\quad
+    \href{\svgname-\the\numexpr\value{page}+1\relax.svg}{Next\,$\rangle$}%
+  \fi
+}
+\fancypagestyle{plain}{\pagestyle{fancy}}
+
+\title{Yet Another Theory of Programming}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{quote}
+\itshape
+``It is important to have an appropriate understanding of what
+programming is. If our understanding is inappropriate, we will
+misunderstand the difficulties that arise in the activity, and our
+attempts to overcome them will give rise to conflicts and
+frustrations.''
+\upshape
+\hfill --- Peter Naur, \emph{Programming as Theory Building} (1985)
+\end{quote}
+
+\bigskip
+
+\begin{abstract}
+While I am certain that much has been written on topics adjacent to
+those discussed here, I have chosen not to delay the writing of this
+document by reviewing the literature beyond the references cited
+herein. I am writing this because I found that, in order to use AI
+effectively for coding, I needed such a thing, a theory of
+programming.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+In the essays collected in \emph{The Mythical Man-Month}
+\cite{brooks1995}, Frederick Brooks chooses to decompose the practice
+of programming into two parts, which, following Aristotle, he calls
+the \emph{essence} and the \emph{accident}. The essence has as a core
+element what Brooks calls \emph{conceptual integrity}, the design of
+the thing, the unity of its ideas. The accident encompasses all of
+the typical activities we know as programming: in particular, an
+implementation of the concept in some language, on some machine, under
+some set of constraints.
+
+Elsewhere in that book, Brooks recalls a notion due to Dorothy Sayers
+\cite{sayers1941} regarding the creative process. Sayers holds that
+creation, no matter which domain we are discussing, whether art,
+science, programming, or anything else, is made up of three
+fundamental parts:
+\begin{enumerate}
+  \item The \emph{theorization}: the idea, conceived in the mind
+    before any material work begins.
+  \item The \emph{implementation}: the putting of pen to paper, so to
+    speak: writing the code, putting the brush to the canvas.
+  \item The \emph{use}: the produced object being received and used by
+    others.
+\end{enumerate}
+
+\noindent It is only when the work is used, whether it is art that is
+being viewed or a program that is being run, that the concept is
+really understood.
+
+All of this was captured nicely by Peter Naur, known for the
+Backus--Naur Form (BNF), in his essay \emph{Programming as Theory
+  Building}, written in 1985 \cite{naur1985}. For me, the key quote
+is this:
+\begin{quote}
+  ``On the theory-building view, the primary result of the programming
+  activity is the theory held by the programmers. Since this theory,
+  by its very nature, is part of the mental possession of each
+  programmer, it follows that the notion of the programmer as an
+  easily replaceable component in the program production activity has
+  to be abandoned.''
+\end{quote}
+
+\section{The Limits of Specifications and Standards}
+
+Recall that program maintenance may be broken into three types:
+\begin{enumerate}
+  \item \textbf{Corrective}, which involves fixing bugs.
+  \item \textbf{Perfective}, which pertains to program optimizations.
+  \item \textbf{Adaptive}, which refers to program modifications
+    demanded by changing external circumstances.
+\end{enumerate}
+
+\noindent It is with adaptive maintenance in mind that Naur says in
+his conclusion:
+\begin{quote}
+  ``Further, on this view, the notion of a programming method
+  understood as a set of rules of procedure to be followed by the
+  programmer is based on invalid assumptions and so has to be
+  rejected.''
+\end{quote}
+
+\noindent Earlier in the text, he gives an example of what he means by
+this:
+\begin{quote}
+  ``For a new programmer to come to possess an existing theory of a
+  program, it is insufficient that he or she has the opportunity to
+  become familiar with the program text and other documentation. What
+  is required is that the new programmer has the opportunity to work
+  in close contact with the programmers who already possess the
+  theory, so as to be able to become familiar with the place of the
+  program in the wider context of the relevant real-world situations,
+  and so as to acquire the knowledge of how the program works and how
+  unusual program reactions and program modifications are handled
+  within the program theory.''
+\end{quote}
+
+Later, he writes:
+\begin{quote}
+  ``A very important consequence of the theory-building view is that
+  program `revival', i.e., re-establishing the theory of a program
+  merely from the documentation, is strictly impossible.''
+\end{quote}
+
+\section{Capturing the Theory}
+
+As Naur argues, and we agree, even the most elaborate set of standards
+and specifications for the software development process will fail to
+capture the theory of programming. In turn, in our use of AI, this
+will lead to AI developers (that is, the AI itself) being unable to
+perform specifically the adaptive maintenance that is so critical and
+truly separates software engineering from other engineering
+disciplines. It requires that software behave more like a living
+thing, able to adapt to a changing environment.
+
+Naur is clear that the method approach to software engineering is
+relevant to the theory-building view, for instance, providing model
+solutions of typical problems and principles of structuring systems
+consisting of many parts and complicated interactions. However, he
+differs from the methodologist in that the programmer must ultimately
+decide by taking into account the actual program problem to be solved.
+
+\section{Actions to Be Taken}
+
+We take this to mean that if one starts from a well-accepted
+methodology, for instance, the IEEE standards or, in our case, our
+personal favorite, the MIL--STD--498 standards and
+specifications \cite{milstd498}, which consist of proven templates
+that have been used for decades and are still employed today to
+engineer the software development effort on countless systems,
+including large and critical ones, then one finds that a key document
+is the so-called \emph{Operational Concept Description} (OCD).
+
+This document describes the general nature of the system upon which
+development is to be done. It summarizes the history of system
+development, operation, and maintenance; identifies the project
+sponsor, acquirer, user, developers, and support organizations;
+identifies environments and sites of operation; and includes any other
+relevant documents. It includes a section titled Section~4:
+Justification for and Nature of Changes. This even includes a
+subsection called Changes Considered but Not Included. The
+justification asks for some provision of deficiencies or limitations
+in the current system or situation that prevent an adequate response to
+these factors.
+
+For us, the authors of the operating concept were certainly well aware
+of the issues that Naur now raises. They would have, if it were
+possible at the time, implemented what he is describing. He
+essentially asserts that in order for someone to do adaptive
+maintenance on a code base, they first need a programmer who built the
+original system to teach them about it, akin to how a musician teaches
+a student music or a writer teaches someone how to write. This
+includes discussions of the relation between the program and the
+relevant aspects and activities of the real world, and of the limit
+set on the real-world matters dealt with by the program. Indeed, these
+are the words of Naur.
+
+Of course, no such thing was possible at the time that these military
+standards were written. In fact, no such thing has been possible until
+today.
+
+AI now has the ability to sit in a code base from day one. What we are
+suggesting is that we go from an operating concept \emph{document} to
+what one might call an operating concept \emph{agent}: a professor of
+the theory of programming for that particular code base.
+
+The lead engineer on the code base, the person who may not have
+written much code in the code base but was responsible for conceptual
+integrity, has proficiency in describing how the program should
+respond. They can provide a kind of onboarding that, in the past, was
+simply impossible.
+
+Further, they have at their disposal things that were not available in
+the past. Previously, we had the code itself and written
+documentation. Now, an agent can also review the Git history. It can
+review all of the pull requests, all the issues that were raised; it
+can analyze how the system has actually responded to each nuance of
+situation based on the observed behavior.
+
+We feel this is the final keystone in the building of an AI
+programming system for software engineering.
+
+\begin{thebibliography}{9}
+
+\bibitem{brooks1995}
+Frederick P.\ Brooks, Jr., \emph{The Mythical Man-Month: Essays on
+  Software Engineering}. Anniversary Edition. Addison-Wesley, 1995.
+
+\bibitem{milstd498}
+U.S.\ Department of Defense, \emph{MIL--STD--498: Software
+  Development and Documentation}. 1994.
+
+\bibitem{naur1985}
+Peter Naur, ``Programming as Theory Building.''
+\emph{Microprocessing and Microprogramming}, 15(5):253--261, 1985.
+
+\bibitem{sayers1941}
+Dorothy L.\ Sayers, \emph{The Mind of the Maker}. Methuen, 1941.
+
+\end{thebibliography}
+
+\end{document}
