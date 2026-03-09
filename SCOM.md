@@ -71,20 +71,34 @@ cp Y-A-T-P-*.svg yatp/
 cp index.html yatp/
 ```
 
-## 5. Publishing
+## 5. Publishing a Release
 
-When satisfied with the local copy:
+Work on feature branches. Merge to `main` when ready. Deploy only on tagged releases.
 
 ```bash
-# Copy final build artifacts to the article directory
+# 1. Merge your feature branch to main
+git checkout main
+git merge feature/your-branch
+
+# 2. Copy final build artifacts to the article directory
 cp index.html yatp/
 cp Y-A-T-P-*.svg yatp/
 
-# Deploy to Cloudflare Pages
+# 3. Update CHANGELOG.md with what changed
+
+# 4. Commit, tag, and push
+git add -A
+git commit -m "Release v1.x.0: description"
+git tag v1.x.0
+git push && git push --tags
+
+# 5. Deploy
 npx wrangler pages deploy . --project-name jeremyjacobson-dev --commit-dirty=true
 ```
 
 The article is live at https://jeremyjacobson.dev/yatp/ within seconds.
+
+**Discipline:** Do not deploy without tagging. The free tier allows 500 deployments per month. Local testing (Section 4) should catch everything before a release.
 
 ## 6. Adding a New Article
 
