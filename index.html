@@ -210,6 +210,22 @@
     }
   }, { passive: true });
 
+  // --- Double-tap center to toggle dark mode (mobile) ---
+  let lastTap = 0;
+  document.addEventListener('touchend', function (e) {
+    var x = e.changedTouches[0].clientX;
+    var w = window.innerWidth;
+    // Only in the center 50% (between the nav zones)
+    if (x < w * 0.25 || x > w * 0.75) return;
+    var now = Date.now();
+    if (now - lastTap < 300) {
+      document.body.classList.toggle('dark');
+      lastTap = 0;
+    } else {
+      lastTap = now;
+    }
+  }, { passive: true });
+
   // --- Hash navigation ---
   function readHash() {
     const h = parseInt(location.hash.replace('#', ''), 10);

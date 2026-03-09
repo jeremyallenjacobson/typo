@@ -75,7 +75,7 @@ The system has three components:
 
 **Reader flips rapidly.** The reader holds the right arrow or taps rapidly. Each press advances one page instantly. The experience is like fast-forwarding: five taps, five pages. If the reader outruns the preloader (unlikely for adjacent pages), the next page appears as soon as it loads — typically within a fraction of a second.
 
-**Author updates the document.** Author edits Y-A-T-P.tex, runs the build script (which auto-patches the TOTAL page count), tests locally, then deploys when satisfied. See SUM.md for the complete author workflow.
+**Author updates the document.** Author edits Y-A-T-P.tex, runs the build script (which auto-patches the TOTAL page count), tests locally, then deploys when satisfied. See SCOM.md for the complete author workflow.
 
 ## Section 7: Impacts
 

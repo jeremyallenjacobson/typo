@@ -8,8 +8,9 @@
 
 ## Documentation
 
-- [PROCRV.md](PROCRV.md): Operating concept, rationale, and theory of the system
-- [SUM.md](SUM.md): Author workflow (write, build, test locally, publish)
+- [Software User Manual (SUM.md)](SUM.md): Reader guide (navigation, dark mode, direct links)
+- [Software Center Operations Manual (SCOM.md)](SCOM.md): Author workflow (write, build, test locally, publish)
+- [Pre-Requirements Operating Concept Rationale and Validation (PROCRV.md)](PROCRV.md): Operating concept, rationale, and theory of the system
 
 ## License
 
