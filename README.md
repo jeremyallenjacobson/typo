@@ -16,9 +16,9 @@ docs/             MIL-STD-498 documentation
 
 ## Documentation
 
-- [PROCRV](docs/PROCRV.md): Operating concept, rationale, and system theory
-- [Runbook](docs/RUNBOOK.md): Author workflow (write, build, test, publish)
-- [SUM](docs/SUM.md): Reader guide (navigation, dark mode, direct links)
+- [Pre-Requirements Operating Concept Rationale and Validation](docs/PROCRV.md)
+- [Runbook](docs/RUNBOOK.md)
+- [Software User Manual](docs/SUM.md)
 
 ## License
 
