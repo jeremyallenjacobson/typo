@@ -1,4 +1,4 @@
-# Software User Manual (SUM)
+# Software Center Operations Manual (SCOM)
 
 ## τύπο (typo): Author Workflow
 
@@ -10,6 +10,8 @@ This document describes how to write, build, test, and publish articles using th
 - dvisvgm (version 2.13.1 or later)
 - wrangler (Cloudflare CLI): `npm install -g wrangler`
 - Authenticated with Cloudflare: `npx wrangler login`
+- A Cloudflare Pages project (create with `npx wrangler pages project create <project-name> --production-branch main`)
+- Optionally, a custom domain connected via Cloudflare dashboard
 
 ## 2. Writing a New Article
 
@@ -31,7 +33,7 @@ Follow the conventions established in `Y-A-T-P.tex`:
 From the project root:
 
 ```bash
-./build-tex.sh Y-A-T-P
+./build-tex.sh <name>
 ```
 
 This runs:
@@ -39,7 +41,7 @@ This runs:
 2. `dvisvgm --pdf --page=1-` (converts PDF to per-page SVGs)
 3. Patches `TOTAL` in `index.html` to match the number of generated SVG pages
 
-Output: `Y-A-T-P-1.svg`, `Y-A-T-P-2.svg`, etc.
+Output: `<name>-1.svg`, `<name>-2.svg`, etc.
 
 ## 4. Local Testing
 
@@ -54,21 +56,21 @@ python3 -m http.server 8000
 Then open in your browser:
 
 ```
-http://localhost:8000/yatp/
+http://localhost:8000/<article-directory>/
 ```
 
 Test:
 - Page navigation (arrow keys, click zones, swipe)
-- Dark mode (`d` key)
-- Direct page links (`http://localhost:8000/yatp/#2`)
+- Dark mode (`d` key on desktop, double-tap center on mobile)
+- Direct page links (`http://localhost:8000/<article-directory>/#2`)
 - Rapid flipping (hold arrow key)
 
 When you change the `.tex` file, rebuild and refresh the browser:
 
 ```bash
-./build-tex.sh Y-A-T-P
-cp Y-A-T-P-*.svg yatp/
-cp index.html yatp/
+./build-tex.sh <name>
+cp <name>-*.svg <article-directory>/
+cp index.html <article-directory>/
 ```
 
 ## 5. Publishing a Release
@@ -81,42 +83,35 @@ git checkout main
 git merge feature/your-branch
 
 # 2. Copy final build artifacts to the article directory
-cp index.html yatp/
-cp Y-A-T-P-*.svg yatp/
+cp index.html <article-directory>/
+cp <name>-*.svg <article-directory>/
 
 # 3. Update CHANGELOG.md with what changed
 
 # 4. Commit, tag, and push
 git add -A
-git commit -m "Release v1.x.0: description"
-git tag v1.x.0
+git commit -m "Release vX.Y.Z: description"
+git tag vX.Y.Z
 git push && git push --tags
 
 # 5. Deploy
-npx wrangler pages deploy . --project-name jeremyjacobson-dev --commit-dirty=true
+npx wrangler pages deploy . --project-name <project-name> --commit-dirty=true
 ```
-
-The article is live at https://jeremyjacobson.dev/yatp/ within seconds.
 
 **Discipline:** Do not deploy without tagging. The free tier allows 500 deployments per month. Local testing (Section 4) should catch everything before a release.
 
 ## 6. Adding a New Article
 
-To publish a second article (e.g., "My Next Article"):
+1. Write `<name>.tex` following the LaTeX conventions above.
+2. Build: `./build-tex.sh <name>`
+3. Create the article directory: `mkdir -p <article-directory>`
+4. Copy the viewer and SVGs: `cp index.html <article-directory>/` and `cp <name>-*.svg <article-directory>/`
+5. Update the `NAME` constant in `<article-directory>/index.html` to match the filename prefix.
+6. Test locally: `python3 -m http.server 8000` then open `http://localhost:8000/<article-directory>/`
+7. Tag and deploy per Section 5.
 
-1. Write `my-next-article.tex` following the LaTeX conventions above.
-2. Build: `./build-tex.sh my-next-article`
-3. Create the article directory: `mkdir -p my-next-article`
-4. Copy the viewer and SVGs: `cp index.html my-next-article/` and `cp my-next-article-*.svg my-next-article/`
-5. Update the `NAME` constant in `my-next-article/index.html` to match the new filename prefix.
-6. Test locally: `python3 -m http.server 8000` → `http://localhost:8000/my-next-article/`
-7. Deploy: `npx wrangler pages deploy . --project-name jeremyjacobson-dev --commit-dirty=true`
-8. Live at: `https://jeremyjacobson.dev/my-next-article/`
+## 7. Hosting
 
-## 7. Domain and Hosting
-
-- **Domain:** `jeremyjacobson.dev` — registered via Cloudflare Registrar (~$12/year)
-- **Hosting:** Cloudflare Pages (free tier) — unlimited static asset bandwidth
-- **Project name:** `jeremyjacobson-dev`
+- **Hosting:** Cloudflare Pages (free tier), unlimited static asset bandwidth
 - **Deployment limit:** 500/month on free tier (deploy only when publishing, not for testing)
-- **Custom domain:** Connected via Cloudflare dashboard → Workers & Pages → Custom domains
+- **Domain:** Register via Cloudflare Registrar, connect via dashboard under Workers & Pages → Custom domains
