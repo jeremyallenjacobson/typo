@@ -4,12 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [1.1.0] - 2026-03-09
 
 ### Changed
 - Reorganized repository: source files in `src/`, deployed files in `site/`, documentation in `docs/`
 - Build script (`src/build-tex.sh`) now resolves paths relative to its own location
 - Deploy command targets `site/` instead of repo root
+- Added author (Jeremy Jacobson) and date (March 9, 2026) to "Yet Another Theory of Programming"
 
 ### Removed
 - Deleted `build-svg-site.sh` (abandoned navigation injection prototype)
