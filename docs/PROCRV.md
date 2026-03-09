@@ -102,6 +102,8 @@ The following principles emerged from the development process. They are not pres
 
 **5. Invisible infrastructure.** The HTML, JavaScript, and CSS in the viewer are invisible. The reader does not know they exist. There are no buttons, no sidebars, no browser-styled UI elements. The page fills the screen. Dark mode is toggled by a single keypress with no settings panel. The page indicator appears briefly and vanishes. The system's infrastructure should be felt, not seen.
 
+**6. The README is a pointer, not a summary.** The README links to the article and to the documentation. It does not re-explain or summarize what is already written in the docs. Each piece of knowledge lives in exactly one place: the operating concept in PROCRV, the author workflow in SCOM, the reader guide in SUM. The README points the reader there. Duplicating content across documents creates drift and maintenance burden.
+
 ### Naur's Criteria Applied
 
 Naur describes three properties that a programmer must possess to hold the theory of a program:
