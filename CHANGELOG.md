@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Changed
+- Reorganized repository: source files in `src/`, deployed files in `site/`, documentation in `docs/`
+- Build script (`src/build-tex.sh`) now resolves paths relative to its own location
+- Deploy command targets `site/` instead of repo root
+
+### Removed
+- Deleted `build-svg-site.sh` (abandoned navigation injection prototype)
+
 ## [1.0.0] - 2026-03-09
 
 ### Added

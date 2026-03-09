@@ -10,18 +10,17 @@ The system publishes LaTeX documents as navigable, multi-page SVG files served f
 
 ## Section 2: References
 
-- Y-A-T-P.tex (working document used as test case)
-- index.html (single-page viewer — the reader experience)
-- build-tex.sh (TeX to PDF to SVG build script)
-- build-svg-site.sh (navigation injection prototype, abandoned)
-- latex-assistant skill (SKILL.md)
+- src/Y-A-T-P.tex (working document used as test case)
+- site/index.html (single-page viewer, the reader experience)
+- src/build-tex.sh (TeX to PDF to SVG build script)
+- .claude/skills/latex-assistant/SKILL.md (latex-assistant skill)
 - dvisvgm documentation (version 2.13.1)
 
 ## Section 3: Current System State
 
 The system is complete and deployed. The first article, "Yet Another Theory of Programming," is live at https://jeremyjacobson.dev/yatp/.
 
-1. **Build pipeline.** LaTeX source compiles to PDF via pdflatex (two passes). PDF converts to per-page SVGs via `dvisvgm --pdf --page=1-`. Fonts render correctly. Build completes in under 2 seconds for 3 pages. Each SVG is 2–4MB (fonts embedded per page). The build script (`build-tex.sh`) automatically patches the TOTAL page count in `index.html` after generating SVGs.
+1. **Build pipeline.** LaTeX source compiles to PDF via pdflatex (two passes). PDF converts to per-page SVGs via `dvisvgm --pdf --page=1-`. Fonts render correctly. Build completes in under 2 seconds for 3 pages. Each SVG is 2–4MB (fonts embedded per page). The build script (`src/build-tex.sh`) automatically patches the TOTAL page count in `site/index.html` after generating SVGs.
 
 2. **Viewer (index.html).** A single HTML file provides the complete reading experience. The reader sees only the LaTeX-rendered page — the HTML is invisible infrastructure. Navigation is by arrow keys, swipe on mobile, or clicking the left/right edges of the page. Rapid key presses or taps advance multiple pages instantly, like fast-forwarding. A transient page indicator ("2 / 3") fades in briefly on each flip and disappears. Dark mode toggles with the `d` key via CSS `filter: invert(0.88) hue-rotate(180deg)`. URL hash (`#3`) enables direct links to any page.
 
@@ -41,7 +40,7 @@ The system is complete and deployed. The first article, "Yet Another Theory of P
 
 - **Hosting.** Solved by Cloudflare Pages. Static files deploy with a single command. The custom domain `jeremyjacobson.dev` provides a permanent, professional URL.
 
-- **Automated page count.** The build script now counts generated SVG files and patches the TOTAL constant in index.html automatically.
+- **Automated page count.** The build script now counts generated SVG files and patches the TOTAL constant in site/index.html automatically.
 
 **Remaining limitations:**
 
@@ -63,11 +62,11 @@ The system has three components:
 
 **Build pipeline.** pdflatex (two passes) produces a PDF. `dvisvgm --pdf` converts each page to SVG. No post-processing of the SVG files is needed. The LaTeX source uses `\pagestyle{empty}` so pages are pure content with no navigation chrome.
 
-**Viewer.** A single `index.html` file provides the reading experience. It loads SVG pages as images, displays one at a time, and handles all navigation. The viewer is invisible infrastructure: the reader sees only the LaTeX page. The hard constraint is that everything the reader sees must be rendered by LaTeX. No sidebars, no HTML chrome, no browser-styled UI elements. Navigation is through physical gestures — arrow keys, swipe, clicking the page edges — not through visible buttons or links. The metaphor is a printed book, not a web application. The viewer preloads adjacent pages so that every page turn is instant regardless of network conditions after the initial load.
+**Viewer.** A single `site/index.html` file provides the reading experience. It loads SVG pages as images, displays one at a time, and handles all navigation. The viewer is invisible infrastructure: the reader sees only the LaTeX page. The hard constraint is that everything the reader sees must be rendered by LaTeX. No sidebars, no HTML chrome, no browser-styled UI elements. Navigation is through physical gestures — arrow keys, swipe, clicking the page edges — not through visible buttons or links. The metaphor is a printed book, not a web application. The viewer preloads adjacent pages so that every page turn is instant regardless of network conditions after the initial load.
 
 **Dark mode.** CSS `filter: invert(0.88) hue-rotate(180deg)` applied to the page image, toggled by the `d` key. No second LaTeX build. The inversion ratio of 0.88 produces a warm dark background rather than pure black.
 
-**Hosting.** Static files are deployed to Cloudflare Pages CDN at https://jeremyjacobson.dev. Articles live at subpaths (e.g., `/yatp/`). Each article directory contains its own `index.html` viewer and SVG pages. Deployment is via `wrangler pages deploy . --project-name jeremyjacobson-dev`. No server logic is needed.
+**Hosting.** Static files are deployed to Cloudflare Pages CDN at https://jeremyjacobson.dev. Articles live at subpaths (e.g., `/yatp/`). Each article directory contains its own `index.html` viewer and SVG pages. Deployment is via `wrangler pages deploy site/ --project-name jeremyjacobson-dev`. No server logic is needed.
 
 ## Section 6: Scenarios
 
@@ -75,7 +74,7 @@ The system has three components:
 
 **Reader flips rapidly.** The reader holds the right arrow or taps rapidly. Each press advances one page instantly. The experience is like fast-forwarding: five taps, five pages. If the reader outruns the preloader (unlikely for adjacent pages), the next page appears as soon as it loads — typically within a fraction of a second.
 
-**Author updates the document.** Author edits Y-A-T-P.tex, runs the build script (which auto-patches the TOTAL page count), tests locally, then deploys when satisfied. See SCOM.md for the complete author workflow.
+**Author updates the document.** Author edits src/Y-A-T-P.tex, runs the build script (which auto-patches the TOTAL page count), tests locally, then deploys when satisfied. See docs/SCOM.md for the complete author workflow.
 
 ## Section 7: Impacts
 

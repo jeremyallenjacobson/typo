@@ -1,3 +1,4 @@
+# LaTeX build artifacts
 *.aux
 *.log
 *.out
@@ -5,10 +6,15 @@
 *.pdf
 *.dvi
 *.ps
-*.svg
-!yatp/*.svg
-!logo.svg
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+
+# SVG build artifacts (generated in src/)
+src/*.svg
+
+# Deployed SVGs are tracked
+!site/**/*.svg
+
+# Cloudflare
 .wrangler/
