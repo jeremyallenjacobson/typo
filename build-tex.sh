@@ -22,9 +22,12 @@ pdflatex -interaction=nonstopmode "${NAME}.tex" > /dev/null
 echo "Converting to SVG ..."
 dvisvgm --pdf --page=1- "${NAME}.pdf" > /dev/null 2>&1
 
-echo "Opening ..."
-for f in ${NAME}-*.svg; do
-  wslview "$f"
-done
+PAGES=$(ls -1 ${NAME}-*.svg 2>/dev/null | wc -l)
 
-echo "Done. Opened $(ls -1 ${NAME}-*.svg 2>/dev/null | wc -l) SVG pages."
+# Patch TOTAL in index.html if it exists
+if [ -f "index.html" ]; then
+  sed -i "s/const TOTAL = [0-9]*/const TOTAL = ${PAGES}/" index.html
+  echo "Patched index.html: TOTAL = ${PAGES}"
+fi
+
+echo "Done. ${PAGES} SVG pages."

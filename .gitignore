@@ -6,6 +6,7 @@
 *.dvi
 *.ps
 *.svg
+!yatp/*.svg
 *.fls
 *.fdb_latexmk
 *.synctex.gz
