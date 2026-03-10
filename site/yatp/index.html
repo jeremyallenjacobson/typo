@@ -65,15 +65,15 @@
   /* Minimal page indicator — fades in/out */
   #indicator {
     position: fixed;
-    bottom: 16px;
+    bottom: 24px;
     left: 50%;
     transform: translateX(-50%);
-    font: 13px/1 system-ui, sans-serif;
+    font: 14px/1 system-ui, sans-serif;
     color: #999;
     opacity: 0;
     transition: opacity 0.3s;
     pointer-events: none;
-    z-index: 20;
+    z-index: 100;
   }
   #indicator.visible { opacity: 1; }
   body.dark #indicator { color: #666; }
