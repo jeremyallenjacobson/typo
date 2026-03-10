@@ -1,6 +1,14 @@
 % !TEX program = pdflatex
-\documentclass[12pt]{article}
-\usepackage[margin=1in]{geometry}
+\ifdefined\mobileformat
+  \documentclass[11pt]{extarticle}
+\else
+  \documentclass[17pt]{extarticle}
+\fi
+\ifdefined\mobileformat
+  \usepackage[margin=0.2in]{geometry}
+\else
+  \usepackage[margin=1in]{geometry}
+\fi
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}
@@ -71,7 +79,9 @@ effectively for coding, I needed such a thing, a theory of
 programming.
 \end{abstract}
 
+\begin{minipage}{\textwidth}
 \tableofcontents
+\end{minipage}
 
 \section{Introduction}
 

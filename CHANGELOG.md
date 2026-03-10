@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.0] - 2026-03-09
+
+### Added
+- Device-optimized builds: desktop (17pt, letter page) and mobile (11pt, 4×7in page, 0.2in margins)
+- Build script produces both SVG sets (`NAME-N.svg` and `NAME-mN.svg`) in a single run
+- Viewer auto-detects mobile portrait and loads mobile SVGs; switches to desktop SVGs in landscape
+- Phone rotation swaps SVG sets automatically
+
+### Changed
+- Desktop font increased from 12pt `article` to 17pt `extarticle` for larger, more readable text
+- LaTeX source uses `\ifdefined\mobileformat` conditional for font size and geometry
+- PROCRV updated with device-optimized builds design and removed "no responsive layout" limitation
+
 ## [1.1.0] - 2026-03-09
 
 ### Changed

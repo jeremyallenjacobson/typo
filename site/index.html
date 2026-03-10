@@ -98,7 +98,8 @@
 <script>
 (function () {
   const NAME = 'Y-A-T-P';
-  const TOTAL = 3;
+  const TOTAL = 6;
+  const MOBILE_TOTAL = 6;
 
   const cache = {};
   const pageEl = document.getElementById('page');
@@ -106,38 +107,61 @@
   let current = 1;
   let indicatorTimer = null;
 
+  // --- Device/orientation detection ---
+  function useMobile() {
+    // Mobile portrait: use mobile SVGs
+    // Mobile landscape or desktop: use desktop SVGs
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    // Consider mobile if narrow (< 820px) AND portrait
+    return w < 820 && h > w;
+  }
+
+  function activeTotal() {
+    return useMobile() ? MOBILE_TOTAL : TOTAL;
+  }
+
   // --- Page URL ---
   function pageUrl(n) {
+    if (useMobile()) {
+      return NAME + '-m' + n + '.svg';
+    }
     return NAME + '-' + n + '.svg';
   }
 
   // --- Preload a page into cache ---
   function preload(n) {
-    if (n < 1 || n > TOTAL || cache[n]) return;
-    const img = new Image();
-    img.src = pageUrl(n);
-    cache[n] = img;
+    var total = activeTotal();
+    if (n < 1 || n > total) return;
+    var url = pageUrl(n);
+    if (cache[url]) return;
+    var img = new Image();
+    img.src = url;
+    cache[url] = img;
   }
 
   // --- Show page ---
   function show(n) {
-    if (n < 1 || n > TOTAL) return;
+    var total = activeTotal();
+    if (n < 1 || n > total) return;
     current = n;
 
     // Update URL hash without scrolling
     history.replaceState(null, '', '#' + n);
 
+    var url = pageUrl(n);
+
     // If cached and loaded, instant swap
-    if (cache[n] && cache[n].complete) {
-      pageEl.src = cache[n].src;
+    if (cache[url] && cache[url].complete) {
+      pageEl.src = cache[url].src;
       pageEl.classList.remove('loading');
     } else {
       // Not yet cached — load it now
       pageEl.classList.add('loading');
       preload(n);
-      cache[n].onload = function () {
+      cache[url].onload = function () {
         if (current === n) {
-          pageEl.src = cache[n].src;
+          pageEl.src = cache[url].src;
           pageEl.classList.remove('loading');
         }
       };
@@ -152,7 +176,7 @@
     });
 
     // Show indicator briefly
-    indicator.textContent = n + ' / ' + TOTAL;
+    indicator.textContent = n + ' / ' + total;
     indicator.classList.add('visible');
     clearTimeout(indicatorTimer);
     indicatorTimer = setTimeout(function () {
@@ -182,7 +206,7 @@
       show(1);
     } else if (e.key === 'End') {
       e.preventDefault();
-      show(TOTAL);
+      show(activeTotal());
     } else if (e.key === 'd') {
       document.body.classList.toggle('dark');
     }
@@ -226,10 +250,19 @@
     }
   }, { passive: true });
 
+  // --- Orientation change: reload current page with correct SVG set ---
+  window.addEventListener('resize', function () {
+    // Clamp current page to new total if switching sets
+    var total = activeTotal();
+    if (current > total) current = total;
+    show(current);
+  });
+
   // --- Hash navigation ---
   function readHash() {
     const h = parseInt(location.hash.replace('#', ''), 10);
-    return (h >= 1 && h <= TOTAL) ? h : 1;
+    var total = activeTotal();
+    return (h >= 1 && h <= total) ? h : 1;
   }
 
   window.addEventListener('hashchange', function () {
@@ -239,11 +272,12 @@
   // --- Init ---
   current = readHash();
   preload(current);
-  cache[current].onload = function () {
+  var initUrl = pageUrl(current);
+  cache[initUrl].onload = function () {
     show(current);
   };
   // If already cached (e.g., browser cache), show immediately
-  if (cache[current] && cache[current].complete) {
+  if (cache[initUrl] && cache[initUrl].complete) {
     show(current);
   }
 })();

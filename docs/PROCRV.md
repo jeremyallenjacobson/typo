@@ -32,6 +32,8 @@ The system is complete and deployed. The first article, "Yet Another Theory of P
 
 6. **Licensing.** The code is MIT-licensed for maximum distribution. The article content is copyrighted by the author. The strategic intent is open distribution: the code is freely available, the ideas are attributed to the author, and the domain serves as the author's professional platform.
 
+7. **Device-optimized builds.** Each article is built twice from the same LaTeX source: a desktop build using standard letter-page geometry, and a mobile build using a page geometry proportioned to a phone screen in portrait (e.g., 3in × 5.3in). LaTeX controls the typography and layout for both targets — larger relative font, appropriate margins, natural line breaks. The build script produces both sets of SVGs (e.g., `Y-A-T-P-1.svg` and `Y-A-T-P-m1.svg`). The viewer detects the device and loads the correct set. On a phone in portrait, the mobile pages fill the screen. On a phone in landscape, the viewer switches to the desktop pages, which fit the wider aspect ratio. On desktop, the desktop pages are used. The book metaphor is preserved on all devices: no scroll, no zoom, just page flips. The desktop build also uses a larger base font size (14pt) for more comfortable reading on large screens.
+
 **Resolved problems:**
 
 - **Inter-page navigation.** Solved by the viewer approach. The failed `sed`-based SVG injection and the `fancyhdr` LaTeX footer were both abandoned. Navigation belongs to the viewer, not to the document.
@@ -45,8 +47,6 @@ The system is complete and deployed. The first article, "Yet Another Theory of P
 **Remaining limitations:**
 
 - **No clickable links in SVGs.** The `dvisvgm --pdf` path strips all hyperlink annotations. Citation text appears blue but is not interactive. This is accepted: in a book, the reader flips to the bibliography. Fast page flipping makes this natural rather than deficient.
-
-- **No responsive layout.** The page is a fixed-size vector image. On narrow screens, the reader must zoom. Acceptable for the book metaphor.
 
 - **Dark mode inverts everything.** Including any embedded images. Acceptable for text-only documents.
 
@@ -129,8 +129,8 @@ Naur describes three properties that a programmer must possess to hold the theor
 
 - No clickable hyperlinks in the SVG body. dvisvgm 2.13.1 in PDF mode strips all PDF annotations. Citation text appears blue but is not interactive. Accepted: the reader flips to the bibliography.
 - No text selection or search within the SVG in most browsers. The text is rendered as positioned glyphs, not reflowable content.
-- No responsive layout. The page is a fixed-size vector image. On narrow screens, the reader must zoom or scroll horizontally.
 - Dark mode inverts everything, including any embedded images. Acceptable for text-only documents.
+- Two SVG sets per article increases storage. Accepted: SVGs are static files on a free-bandwidth CDN, and the viewer only loads the set it needs.
 
 ### Alternatives and Tradeoffs Considered
 
