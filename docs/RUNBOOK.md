@@ -43,6 +43,13 @@ This runs:
 
 Output: `src/<name>-1.svg`, `src/<name>-2.svg`, etc.
 
+**Important:** The build script counts SVG files in `src/` to determine TOTAL and MOBILE_TOTAL. If stale SVGs from a previous build remain (e.g., you changed font size and now have fewer pages), the count will be wrong. Always clean old SVGs before rebuilding:
+
+```bash
+rm -f src/<name>-*.svg src/<name>-m*.svg
+src/build-tex.sh <name>
+```
+
 ## 4. Local Testing
 
 **Do not deploy to test.** The Cloudflare free tier allows 500 deployments per month. Use local testing for all iteration on content, fonts, and layout.
@@ -68,10 +75,18 @@ Test:
 When you change the `.tex` file, rebuild and refresh the browser:
 
 ```bash
+rm -f src/<name>-*.svg src/<name>-m*.svg
 src/build-tex.sh <name>
 cp src/<name>-*.svg site/<article-directory>/
+cp src/<name>-m*.svg site/<article-directory>/
 cp site/index.html site/<article-directory>/
 ```
+
+**Note:** The build script patches `site/index.html` (the template), but the article directory has its own copy. You must copy the updated `index.html` into the article directory after each build, or the page counts will be stale.
+
+**Note:** `extarticle` document class only supports font sizes 8, 9, 10, 11, 12, 14, 17, 20pt. Specifying an unsupported size (e.g., 13pt, 19pt) silently falls back to 10pt with no error or warning.
+
+**Browser caching during testing:** When testing SVG changes, the browser may serve cached versions (304 responses). Use incognito/private browsing or hard refresh (Ctrl+Shift+R on desktop, clear cache on mobile) to ensure you see the latest files.
 
 ## 5. Publishing a Release
 

@@ -56,6 +56,33 @@ The goal is a document format that loads instantly for readers, looks identical 
 
 Global hosting is resolved. The reader anywhere in the world experiences the same instant loading and page-flipping speed as local testing. The site is deployed on Cloudflare Pages CDN at https://jeremyjacobson.dev.
 
+### Image quality investigation findings
+
+The following approaches were tested independently against the same baseline, each changing exactly one variable to avoid path dependence. All testing was performed on localhost via `python3 -m http.server 8000 -d site`, with the user reviewing on both desktop browser and phone.
+
+**Root cause.** The `dvisvgm --pdf` pipeline converts every font glyph into SVG `<path>` elements (vector outlines). These paths are geometrically accurate to the LaTeX output, which is the system's requirement. However, when the browser rasterizes these paths at screen resolution, it applies generic vector anti-aliasing rather than the specialized font hinting that native text renderers use. This produces slightly rough edges on thin features — serifs, italic strokes, and the tops of letters — especially at small sizes on phone screens.
+
+**What was tested and ruled out:**
+
+1. **Font size increase (extarticle 17pt → 20pt desktop, 11pt → 12pt mobile).** Desktop size improvement was approved by the lead engineer. Mobile was slightly improved but roughness remained. Note: `extarticle` only supports sizes 8, 9, 10, 11, 12, 14, 17, 20pt. Invalid sizes (e.g., 13pt, 19pt) silently fall back to 10pt with no warning.
+2. **dvisvgm `--precision=6 --exact-bbox`.** No visible improvement. The default precision of 0 decimal points sounds coarse, but the glyph coordinate data from the PDF already has high precision. The roughness is not caused by insufficient coordinate precision.
+3. **Removing `width`/`height` attributes from SVGs (keeping only `viewBox`).** No visible improvement. The hypothesis was that fixed `pt` dimensions caused the browser to rasterize at a lower resolution than the device pixel ratio. In practice, this made no difference.
+4. **Switching viewer from `<img>` to `<object>` tag.** No visible improvement with path-based SVGs. The rendering pipeline for SVG paths is the same regardless of how the SVG is embedded.
+5. **Alternative font (Libertinus Serif replacing EB Garamond).** Same roughness. This confirmed the problem is not font-specific — it is inherent to path-based glyph rendering.
+6. **Inkscape PDF-to-SVG conversion (Cairo backend, `--export-text-to-path`).** Slightly different quality but not better overall. Cairo produces different path approximations than dvisvgm, but both suffer from the same fundamental issue: glyphs are paths, not text.
+7. **DVI path with `--font-format=woff2` (embedded web fonts, `<text>` elements).** This produced SVGs with actual `<text>` elements and embedded WOFF2 fonts, enabling native browser font rendering. However, this approach **violates the core theory of the system**: the browser's font renderer makes its own decisions about hinting, kerning, and anti-aliasing, meaning the reader no longer sees exactly what LaTeX produced. Additionally, the DVI path exhibited the known word spacing issues with EB Garamond that were previously documented. This approach was rejected.
+
+**Constraint reaffirmed.** The system's theory requires that LaTeX controls all typography and the browser merely presents the rendered output. Any approach that hands typography decisions back to the browser (web fonts, `<text>` elements, HTML text layers) violates this constraint. The path-based SVG approach is correct — it preserves exactly what LaTeX produced.
+
+**Next steps to try.** Within the system's constraints, two untested approaches may reduce the perceived roughness:
+
+1. **Increase mobile font size to 14pt** (the next valid `extarticle` step up from 11pt). Larger glyphs have more pixels per feature, making anti-aliasing artifacts less perceptible. Desktop at 20pt was already approved.
+2. **dvisvgm `--zoom=2`** (or higher). This scales up the SVG coordinate space, giving the browser more geometric detail to work with during rasterization. The viewer CSS already constrains the displayed size via `max-height: 100dvh`, so the visual size would not change, but the internal resolution of the path data would increase.
+
+These should be tested independently, then combined if both show improvement.
+
+Future work beyond image quality may include a landing page at the domain root, additional articles, or mobile viewport refinements.
+
 ## Section 5: Concept
 
 The system has three components:
@@ -82,7 +109,9 @@ The system has three components:
 
 **What is lost.** All hyperlinks embedded by hyperref (citations, TOC cross-references, external URLs) are stripped by `dvisvgm --pdf`. Citation text appears blue but is not clickable. This is a known limitation of dvisvgm 2.13.1 in PDF mode. This is accepted because the book metaphor does not require clickable citations — the reader flips to the bibliography.
 
-**What remains.** The system is feature-complete for its current scope. Future work may include a landing page at the domain root, additional articles, or mobile viewport refinements.
+**What remains.**
+
+- **Image quality parity with print.** On a phone screen, rendered text exhibits slightly rough or pixelated edges, most visible on thin features such as italics, serifs, and the tops of letters. The goal is that a reader viewing the SVG on a phone cannot perceive any quality difference from a physical page of the same size. An investigation was conducted to isolate the root cause. See Section 4 (Justification) for the findings and the next steps to try.
 
 ## Section 8: Theory of the Proposed System
 
@@ -136,7 +165,7 @@ Naur describes three properties that a programmer must possess to hold the theor
 
 - **HTML output via make4ht.** Produces searchable, reflowable HTML with working links. Loses the LaTeX typography entirely. Browser fonts replace EB Garamond. Rejected because the core requirement is that the reader sees LaTeX-rendered output.
 - **PDF served directly.** Preserves all links and typography. Requires a PDF viewer (browser built-in or external). Rendering speed depends on the viewer. No dark mode without a separate build. PDFs cannot be styled or wrapped by a thin HTML page. Remains a viable fallback.
-- **DVI-to-SVG path (without --pdf).** Preserves hyperlinks from the hypertex driver. Destroys word spacing with EB Garamond. Rejected after testing.
+- **DVI-to-SVG path (without --pdf).** Preserves hyperlinks from the hypertex driver. Destroys word spacing with EB Garamond. Rejected after testing. Re-tested with `--font-format=woff2` to embed actual web fonts and produce `<text>` elements for native browser rendering. Text was crisper but spacing was worse than the PDF path, and the approach violates the core constraint that LaTeX — not the browser — controls all typography. Rejected again.
 - **SVG injection (sed/Python post-processor).** Attempted to inject `<a>` navigation elements directly into SVG files. The `sed` approach failed on XML entities. The approach was abandoned entirely in favor of the viewer, which solved navigation plus dark mode, direct linking, and rapid flipping — none of which injection could provide.
 
 ### Changes Considered but Not Included
