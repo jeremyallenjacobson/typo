@@ -6,8 +6,9 @@ This document describes how to write, build, test, and publish articles using th
 
 ## 1. Prerequisites
 
-- pdflatex (TeX Live or equivalent)
-- dvisvgm (version 2.13.1 or later)
+- LuaLaTeX (TeX Live or equivalent)
+- dvisvgm (version 3.6 or later, compiled with `--font-format=woff2` support)
+- Gentium Book Plus font installed (system .ttf files with professional TrueType hinting)
 - wrangler (Cloudflare CLI): `npm install -g wrangler`
 - Authenticated with Cloudflare: `npx wrangler login`
 - A Cloudflare Pages project (create with `npx wrangler pages project create <project-name> --production-branch main`)
@@ -24,8 +25,8 @@ Load the `latex-assistant` skill in Amp to write and edit LaTeX. The skill rende
 Follow the conventions established in `src/Y-A-T-P.tex`:
 
 - `\pagestyle{empty}` — no headers, footers, or page numbers. The viewer handles navigation.
-- `\usepackage[colorlinks=true, linkcolor=blue, citecolor=blue, urlcolor=blue]{hyperref}` — links appear blue even though they are not clickable in the SVG output. This is accepted per the book metaphor.
-- Font stack: EB Garamond (text), Fourier (math), Latin Modern Mono (code).
+- No `hyperref` — links are not clickable in SVG output, and books do not change print color for references.
+- Font: Gentium Book Plus via `fontspec`, loaded from system .ttf files with professional TrueType hinting.
 - `\usepackage{microtype}` — for typographic refinement.
 
 ## 3. Building
@@ -37,9 +38,9 @@ src/build-tex.sh <name>
 ```
 
 This runs:
-1. `pdflatex` (two passes, for TOC and cross-references)
-2. `dvisvgm --pdf --page=1-` (converts PDF to per-page SVGs)
-3. Patches `TOTAL` in `site/index.html` to match the number of generated SVG pages
+1. `lualatex --output-format=dvi` (two passes, for TOC and cross-references)
+2. `dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1-` (converts DVI to per-page SVGs with embedded WOFF2 fonts, preserving professional TT hinting)
+3. Patches `TOTAL` and `MOBILE_TOTAL` in `site/index.html` to match the number of generated SVG pages
 
 Output: `src/<name>-1.svg`, `src/<name>-2.svg`, etc.
 

@@ -1,37 +1,48 @@
-% !TEX program = pdflatex
+% !TEX program = lualatex
 \ifdefined\mobileformat
-  \documentclass[11pt]{extarticle}
+  \documentclass[14pt]{extarticle}
 \else
-  \documentclass[17pt]{extarticle}
+  \documentclass[20pt]{extarticle}
 \fi
 \ifdefined\mobileformat
-  \usepackage[margin=0.2in]{geometry}
+  \usepackage[left=0.1in, right=0.1in, top=0.15in, bottom=0.15in]{geometry}
 \else
-  \usepackage[margin=1in]{geometry}
+  \usepackage[left=0.1in, right=0.1in, top=0.6in, bottom=0.6in]{geometry}
 \fi
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[colorlinks=true, linkcolor=black, citecolor=black, urlcolor=blue]{hyperref}
 \usepackage{enumitem}
 \usepackage{titlesec}
 \usepackage{setspace}
-\usepackage{xurl}
 \setlist{nosep}
 \titleformat{\section}{\large\bfseries}{}{0em}{}
 \titlespacing*{\section}{0pt}{1ex}{0.6ex}
+\ifdefined\mobileformat
+  \emergencystretch=2em
+\fi
+\makeatletter
+\renewcommand{\l@section}[2]{%
+  \par\noindent
+  \rightskip=1em plus 1fil\relax
+  \textbf{#1}\par\vspace{0.3ex}}
+\makeatother
+\setcounter{secnumdepth}{0}
 
-% --- math (Fourier) ---
-\usepackage{fourier}
+% --- fonts via fontspec (loads .ttf directly, preserving TT hinting) ---
+\usepackage{fontspec}
+\setmainfont{Gentium Book Plus}[
+  BoldFont = {Gentium Book Plus Bold},
+  ItalicFont = {Gentium Book Plus Italic},
+  BoldItalicFont = {Gentium Book Plus Bold Italic},
+]
 
-% --- mono (Latin Modern Mono) ---
-\usepackage{lmodern}
-\renewcommand{\ttdefault}{lmtt}
+% --- math ---
+\usepackage{unicode-math}
+\setmathfont{Latin Modern Math}
 
-% --- text (EB Garamond) ---
-\usepackage[lining]{ebgaramond}
+% --- mono ---
+\setmonofont{Latin Modern Mono}
 
 % --- math/theorem environments ---
-\usepackage{amsmath,amssymb,amsthm}
+\usepackage{amsmath,amsthm}
 \usepackage{microtype}
 
 \theoremstyle{plain}

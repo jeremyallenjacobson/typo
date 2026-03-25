@@ -1,5 +1,7 @@
 #!/bin/bash
-# Build a .tex file in src/: tex -> pdf -> svg (desktop + mobile)
+# Build a .tex file in src/: lualatex -> dvi -> svg (desktop + mobile)
+# Uses LuaLaTeX DVI pipeline with woff2 fonts (no autohint — preserves
+# professional TrueType hinting from .ttf files loaded via fontspec)
 # Usage: src/build-tex.sh <name>  (without .tex extension)
 # Run from the repo root: src/build-tex.sh Y-A-T-P
 set -e
@@ -21,11 +23,13 @@ cd "$SCRIPT_DIR"
 
 # --- Desktop build ---
 echo "Compiling ${NAME}.tex (desktop) ..."
-pdflatex -interaction=nonstopmode "${NAME}.tex" > /dev/null
-pdflatex -interaction=nonstopmode "${NAME}.tex" > /dev/null
+lualatex --output-format=dvi -interaction=nonstopmode "${NAME}.tex" > /dev/null || true
+lualatex --output-format=dvi -interaction=nonstopmode "${NAME}.tex" > /dev/null || true
+
+if [ ! -f "${NAME}.dvi" ]; then echo "Error: lualatex failed to produce ${NAME}.dvi"; exit 1; fi
 
 echo "Converting to SVG (desktop) ..."
-dvisvgm --pdf --page=1- "${NAME}.pdf" > /dev/null 2>&1
+dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1- "${NAME}.dvi" > /dev/null 2>&1
 
 PAGES=$(ls -1 ${NAME}-*.svg 2>/dev/null | wc -l)
 
@@ -39,11 +43,13 @@ cat > "$MOBILE_TEX" <<EOF
 EOF
 
 echo "Compiling ${NAME}.tex (mobile) ..."
-pdflatex -interaction=nonstopmode -jobname="${NAME}-mobile" "${MOBILE_TEX}" > /dev/null
-pdflatex -interaction=nonstopmode -jobname="${NAME}-mobile" "${MOBILE_TEX}" > /dev/null
+lualatex --output-format=dvi -interaction=nonstopmode -jobname="${NAME}-mobile" "${MOBILE_TEX}" > /dev/null || true
+lualatex --output-format=dvi -interaction=nonstopmode -jobname="${NAME}-mobile" "${MOBILE_TEX}" > /dev/null || true
+
+if [ ! -f "${NAME}-mobile.dvi" ]; then echo "Error: lualatex failed to produce ${NAME}-mobile.dvi"; exit 1; fi
 
 echo "Converting to SVG (mobile) ..."
-dvisvgm --pdf --page=1- "${NAME}-mobile.pdf" > /dev/null 2>&1
+dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1- "${NAME}-mobile.dvi" > /dev/null 2>&1
 
 # Rename mobile SVGs: Y-A-T-P-mobile-01.svg -> Y-A-T-P-m1.svg
 for f in ${NAME}-mobile-*.svg; do
@@ -55,7 +61,7 @@ done
 MOBILE_PAGES=$(ls -1 ${NAME}-m*.svg 2>/dev/null | wc -l)
 
 # Clean up mobile wrapper and build artifacts
-rm -f "$MOBILE_TEX" "${NAME}-mobile.pdf" "${NAME}-mobile.aux" "${NAME}-mobile.log" \
+rm -f "$MOBILE_TEX" "${NAME}-mobile.dvi" "${NAME}-mobile.aux" "${NAME}-mobile.log" \
       "${NAME}-mobile.out" "${NAME}-mobile.toc"
 
 # Patch TOTAL and MOBILE_TOTAL in site/index.html if it exists
