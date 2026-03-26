@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.2.1] - 2026-03-26
+
+### Changed
+- Viewer fills device screen: mobile SVGs expand to full viewport width, desktop SVGs expand to full viewport height, with the other dimension scaling proportionally via the SVG aspect ratio
+
 ## [1.2.0] - 2026-03-09
 
 ### Added

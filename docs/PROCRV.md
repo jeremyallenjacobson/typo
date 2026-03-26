@@ -25,7 +25,7 @@ The system is complete and deployed. The first article, "Yet Another Theory of P
 
 1. **Build pipeline.** LaTeX source compiles to DVI via `lualatex --output-format=dvi` (two passes). LuaLaTeX loads fonts from system `.ttf` files via `fontspec`, preserving professional TrueType hinting. DVI converts to per-page SVGs via `dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1-` — no `autohint` flag, so the professional hinting in the `.ttf` files is preserved rather than overridden by dvisvgm's generic autohinter. The dvisvgm flags: `--precision=6` sets the number of decimal places for SVG coordinates (6 provides sub-pixel accuracy for glyph positioning); `--page=1-` processes all pages in the DVI file, producing one SVG per page (e.g., `Y-A-T-P-1.svg`, `Y-A-T-P-2.svg`, etc.); `--bbox=papersize` sets the SVG viewBox to the page dimensions from the LaTeX geometry. The build script (`src/build-tex.sh`) automatically patches the TOTAL page count in `site/index.html` after generating SVGs.
 
-2. **Viewer (index.html).** A single HTML file provides the complete reading experience. The reader sees only the LaTeX-rendered page — the HTML is invisible infrastructure. The display is always dark: warm gray text on a near-black background via CSS `filter: invert(0.88) hue-rotate(180deg)`, like a Kindle. There is no light mode and no toggle — books do not have display options. Navigation is by arrow keys on desktop, or tapping the left/right halves of the screen on mobile. Holding a tap flips pages rapidly. On mobile, the viewer is portrait-only; landscape shows a "Rotate to portrait" message, because books do not have orientations. A transient page indicator fades in briefly on each flip. URL hash (`#3`) enables direct links to any page.
+2. **Viewer (index.html).** A single HTML file provides the complete reading experience. The reader sees only the LaTeX-rendered page — the HTML is invisible infrastructure. The display is always dark: warm gray text on a near-black background via CSS `filter: invert(0.88) hue-rotate(180deg)`, like a Kindle. There is no light mode and no toggle — books do not have display options. The SVG page fills the device screen: on mobile, it expands to full viewport width (height scales proportionally); on desktop, it expands to full viewport height (width scales proportionally). Navigation is by arrow keys on desktop, or tapping the left/right halves of the screen on mobile. Holding a tap flips pages rapidly. On mobile, the viewer is portrait-only; landscape shows a "Rotate to portrait" message, because books do not have orientations. A transient page indicator fades in briefly on each flip. URL hash (`#3`) enables direct links to any page.
 
 3. **Performance model.** The current page loads first (~15–25KB per page with the DVI+woff2 pipeline, sub-second). Adjacent pages preload silently in the background. By the time the reader flips, the next page is already in memory. Every page turn is instant. Rapid flipping is instant. The preloader stays one or two pages ahead, with an additional lookahead for fast flippers.
 
@@ -130,7 +130,7 @@ The system has three components:
 
 **What remains.**
 
-- **Mobile typography refinements.** Margins, font size, and spacing for the mobile build may need further tuning to match Kindle-style reading comfort.
+- **No known remaining issues.** The viewer fills the device screen on both mobile and desktop.
 
 ## Section 8: Theory of the Proposed System
 
