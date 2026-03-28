@@ -10,13 +10,11 @@
 | Previous page | Left arrow, Up arrow, Page Up | Swipe right, or tap left edge |
 | First page | Home | — |
 | Last page | End | — |
-| Rapid flip | Hold any navigation key | Tap edges repeatedly |
+| Rapid flip | Hold any navigation key | Hold tap on left/right edge |
 
-### Dark Mode
+### Display
 
-| Action | Desktop | Mobile |
-|--------|---------|--------|
-| Toggle dark mode | Press `d` | Double-tap the center of the page |
+The display is always dark — Apple Books Night mode (#b0b0b0 text on #121212 background). There is no light mode and no toggle.
 
 ### Direct Links
 

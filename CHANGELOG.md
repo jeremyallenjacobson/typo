@@ -4,6 +4,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.3.0] - 2026-03-27
+
+### Added
+- LaTeX page numbers via fancyhdr: article title (scriptsize) upper-left, page number upper-right
+- First page shows page number only (no title, since it's the title page)
+
+### Changed
+- Display: Apple Books Night mode (#b0b0b0 text on #121212 background) via SVG feColorMatrix filter, replacing CSS invert(0.88) hue-rotate(180deg)
+- Mobile font reduced from 14pt to 12pt
+- Text alignment: raggedright globally (no justification, no hyphenation)
+- Mobile section headings use normalsize (was large)
+- Mobile list indentation tightened to 1.2em
+- Paragraph separation via parskip (was parindent)
+- Removed table of contents (short article)
+- Removed microtype, setspace, unicode-math, amsmath, amsthm packages (unused)
+- Build script: fixed sed patterns to match `var TOTAL` (was `const TOTAL`)
+- Build script: desktop page count glob uses `[0-9]*` to avoid matching mobile SVGs
+- Updated article text with revised sections and new content
+
+### Removed
+- Popup page indicator (page numbers now rendered by LaTeX)
+- Dark mode toggle references from SUM
+
 ## [1.2.1] - 2026-03-26
 
 ### Changed

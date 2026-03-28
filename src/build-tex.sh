@@ -31,7 +31,7 @@ if [ ! -f "${NAME}.dvi" ]; then echo "Error: lualatex failed to produce ${NAME}.
 echo "Converting to SVG (desktop) ..."
 dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1- "${NAME}.dvi" > /dev/null 2>&1
 
-PAGES=$(ls -1 ${NAME}-*.svg 2>/dev/null | wc -l)
+PAGES=$(ls -1 ${NAME}-[0-9]*.svg 2>/dev/null | wc -l)
 
 # --- Mobile build ---
 # Create a wrapper that overrides geometry for mobile page dimensions
@@ -67,8 +67,8 @@ rm -f "$MOBILE_TEX" "${NAME}-mobile.dvi" "${NAME}-mobile.aux" "${NAME}-mobile.lo
 # Patch TOTAL and MOBILE_TOTAL in site/index.html if it exists
 SITE_INDEX="${SCRIPT_DIR}/../site/index.html"
 if [ -f "$SITE_INDEX" ]; then
-  sed -i "s/const TOTAL = [0-9]*/const TOTAL = ${PAGES}/" "$SITE_INDEX"
-  sed -i "s/const MOBILE_TOTAL = [0-9]*/const MOBILE_TOTAL = ${MOBILE_PAGES}/" "$SITE_INDEX"
+  sed -i "s/var TOTAL = [0-9]*/var TOTAL = ${PAGES}/" "$SITE_INDEX"
+  sed -i "s/var MOBILE_TOTAL = [0-9]*/var MOBILE_TOTAL = ${MOBILE_PAGES}/" "$SITE_INDEX"
   echo "Patched site/index.html: TOTAL = ${PAGES}, MOBILE_TOTAL = ${MOBILE_PAGES}"
 fi
 

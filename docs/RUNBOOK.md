@@ -24,10 +24,10 @@ Load the `latex-assistant` skill in Amp to write and edit LaTeX. The skill rende
 
 Follow the conventions established in `src/Y-A-T-P.tex`:
 
-- `\pagestyle{empty}` — no headers, footers, or page numbers. The viewer handles navigation.
+- Page headers via `fancyhdr`: title on the left, page number on the right.
 - No `hyperref` — links are not clickable in SVG output, and books do not change print color for references.
 - Font: Gentium Book Plus via `fontspec`, loaded from system .ttf files with professional TrueType hinting.
-- `\usepackage{microtype}` — for typographic refinement.
+- `\raggedright` — used globally (no right-margin justification).
 
 ## 3. Building
 
@@ -40,7 +40,7 @@ src/build-tex.sh <name>
 This runs:
 1. `lualatex --output-format=dvi` (two passes, for TOC and cross-references)
 2. `dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1-` (converts DVI to per-page SVGs with embedded WOFF2 fonts, preserving professional TT hinting)
-3. Patches `TOTAL` and `MOBILE_TOTAL` in `site/index.html` to match the number of generated SVG pages
+3. Patches `var TOTAL` and `var MOBILE_TOTAL` in `site/index.html` to match the number of generated SVG pages
 
 Output: `src/<name>-1.svg`, `src/<name>-2.svg`, etc.
 
@@ -69,7 +69,6 @@ http://localhost:8000/<article-directory>/
 
 Test:
 - Page navigation (arrow keys, click zones, swipe)
-- Dark mode (`d` key on desktop, double-tap center on mobile)
 - Direct page links (`http://localhost:8000/<article-directory>/#2`)
 - Rapid flipping (hold arrow key)
 
@@ -77,11 +76,14 @@ When you change the `.tex` file, rebuild and refresh the browser:
 
 ```bash
 rm -f src/<name>-*.svg src/<name>-m*.svg
+rm -f site/<article-directory>/<name>-*.svg site/<article-directory>/<name>-m*.svg
 src/build-tex.sh <name>
 cp src/<name>-*.svg site/<article-directory>/
 cp src/<name>-m*.svg site/<article-directory>/
 cp site/index.html site/<article-directory>/
 ```
+
+**Important:** Clean stale SVGs from **both** `src/` and `site/<article-directory>/` before rebuilding. During testing, leftover SVGs in the article directory (e.g., from a build with more pages) will serve 404-producing references. The `rm` commands above handle both locations.
 
 **Note:** The build script patches `site/index.html` (the template), but the article directory has its own copy. You must copy the updated `index.html` into the article directory after each build, or the page counts will be stale.
 
@@ -98,9 +100,11 @@ Work on feature branches. Merge to `main` when ready. Deploy only on tagged rele
 git checkout main
 git merge feature/your-branch
 
-# 2. Copy final build artifacts to the article directory
-cp site/index.html site/<article-directory>/
+# 2. Clean stale SVGs and copy final build artifacts to the article directory
+rm -f site/<article-directory>/<name>-*.svg site/<article-directory>/<name>-m*.svg
 cp src/<name>-*.svg site/<article-directory>/
+cp src/<name>-m*.svg site/<article-directory>/
+cp site/index.html site/<article-directory>/   # CRITICAL: keeps template in sync
 
 # 3. Update CHANGELOG.md with what changed
 

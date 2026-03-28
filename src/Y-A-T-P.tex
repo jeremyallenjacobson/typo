@@ -1,29 +1,29 @@
 % !TEX program = lualatex
 \ifdefined\mobileformat
-  \documentclass[14pt]{extarticle}
+  \documentclass[12pt]{extarticle}
 \else
   \documentclass[20pt]{extarticle}
 \fi
 \ifdefined\mobileformat
-  \usepackage[left=0.1in, right=0.1in, top=0.15in, bottom=0.15in]{geometry}
+  \usepackage[left=0.1in, right=0.1in, top=0.25in, bottom=0.35in, headsep=2pt]{geometry}
+  \setlength{\headheight}{14pt}
 \else
-  \usepackage[left=0.1in, right=0.1in, top=0.6in, bottom=0.6in]{geometry}
+  \usepackage[left=0.1in, right=0.1in, top=0.5in, bottom=0.6in, headsep=4pt]{geometry}
+  \setlength{\headheight}{20pt}
 \fi
 \usepackage{enumitem}
 \usepackage{titlesec}
-\usepackage{setspace}
-\setlist{nosep}
-\titleformat{\section}{\large\bfseries}{}{0em}{}
-\titlespacing*{\section}{0pt}{1ex}{0.6ex}
 \ifdefined\mobileformat
-  \emergencystretch=2em
+  \setlist{nosep, leftmargin=1.2em}
+  \titleformat{\section}{\normalsize\bfseries}{}{0em}{}
+\else
+  \setlist{nosep}
+  \titleformat{\section}{\large\bfseries}{}{0em}{}
 \fi
-\makeatletter
-\renewcommand{\l@section}[2]{%
-  \par\noindent
-  \rightskip=1em plus 1fil\relax
-  \textbf{#1}\par\vspace{0.3ex}}
-\makeatother
+\titlespacing*{\section}{0pt}{1ex}{0.6ex}
+\raggedright
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5ex plus 0.2ex}
 \setcounter{secnumdepth}{0}
 
 % --- fonts via fontspec (loads .ttf directly, preserving TT hinting) ---
@@ -34,40 +34,23 @@
   BoldItalicFont = {Gentium Book Plus Bold Italic},
 ]
 
-% --- math ---
-\usepackage{unicode-math}
-\setmathfont{Latin Modern Math}
+\newcommand{\doctitle}{Yet Another Theory of Programming}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\scriptsize\doctitle}
+\fancyhead[R]{\scriptsize\thepage}
+\fancypagestyle{firstpage}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyhead[R]{\scriptsize\thepage}}
 
-% --- mono ---
-\setmonofont{Latin Modern Mono}
-
-% --- math/theorem environments ---
-\usepackage{amsmath,amsthm}
-\usepackage{microtype}
-
-\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{corollary}[theorem]{Corollary}
-
-\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
-
-\theoremstyle{remark}
-\newtheorem{remark}[theorem]{Remark}
-
-\pagestyle{empty}
-
-\title{Yet Another Theory of Programming}
+\title{\doctitle}
 \author{Jeremy Jacobson}
 \date{March 9, 2026}
 
 \begin{document}
 
 \maketitle
-\thispagestyle{empty}
+\thispagestyle{firstpage}
 
 \begin{quote}
 \itshape
@@ -84,16 +67,11 @@ frustrations.''
 
 \begin{abstract}
 While I am certain that much has been written on topics adjacent to
-those discussed here, I have chosen not to delay the writing of this
-document by reviewing the literature beyond the references cited
+those discussed here, I have chosen not to review the literature beyond the references cited
 herein. I am writing this because I found that, in order to use AI
 effectively for coding, I needed such a thing, a theory of
 programming.
 \end{abstract}
-
-\begin{minipage}{\textwidth}
-\tableofcontents
-\end{minipage}
 
 \section{Introduction}
 
@@ -121,7 +99,7 @@ fundamental parts:
     others.
 \end{enumerate}
 
-\noindent It is only when the work is used, whether it is art that is
+It is only when the work is used, whether it is art that is
 being viewed or a program that is being run, that the concept is
 really understood.
 
@@ -138,17 +116,7 @@ is this:
   to be abandoned.''
 \end{quote}
 
-\section{The Limits of Specifications and Standards}
-
-Recall that program maintenance may be broken into three types:
-\begin{enumerate}
-  \item \textbf{Corrective}, which involves fixing bugs.
-  \item \textbf{Perfective}, which pertains to program optimizations.
-  \item \textbf{Adaptive}, which refers to program modifications
-    demanded by changing external circumstances.
-\end{enumerate}
-
-\noindent It is with adaptive maintenance in mind that Naur says in
+Later, Naur says in
 his conclusion:
 \begin{quote}
   ``Further, on this view, the notion of a programming method
@@ -157,8 +125,12 @@ his conclusion:
   rejected.''
 \end{quote}
 
-\noindent Earlier in the text, he gives an example of what he means by
-this:
+\section{The Limits of Specifications and Standards}
+One might hope, and many currently seem to believe, that with sufficient context, specifications and procedural standards, AI will be able to contribute to
+software development at a level that meets or exceeds the most skilled developers.
+
+However, if one takes the theory building view of programming, then clearly there remain challenges with such an approach. In the words of Naur:
+
 \begin{quote}
   ``For a new programmer to come to possess an existing theory of a
   program, it is insufficient that he or she has the opportunity to
@@ -172,14 +144,26 @@ this:
   within the program theory.''
 \end{quote}
 
-Later, he writes:
+Later, Naur writes:
 \begin{quote}
   ``A very important consequence of the theory-building view is that
   program `revival', i.e., re-establishing the theory of a program
   merely from the documentation, is strictly impossible.''
 \end{quote}
 
+Indeed, consider the example of research mathematics. Despite no shortage of articles and textbooks, mathematics at the highest levels is taught only in a student advisor relationship. To reach an understanding of the 'theory of the program' when it comes to research mathematics, with few exceptions it is necessary for a student to work for 4-6 years under a working mathematician. 
+
 \section{Capturing the Theory}
+
+Recall that program maintenance may be broken into three types:
+\begin{enumerate}
+  \item \textbf{Corrective}, which involves fixing bugs.
+  \item \textbf{Perfective}, which pertains to program optimizations.
+  \item \textbf{Adaptive}, which refers to program modifications
+    demanded by changing external circumstances.
+\end{enumerate}
+
+For AI to be a full participant in the software development lifecycle, it must be able to perform the adaptive maintenance that is often the most expensive drain on a developer's time. 
 
 As Naur argues, and we agree, even the most elaborate set of standards
 and specifications for the software development process will fail to
@@ -187,24 +171,17 @@ capture the theory of programming. In turn, in our use of AI, this
 will lead to AI developers (that is, the AI itself) being unable to
 perform specifically the adaptive maintenance that is so critical and
 truly separates software engineering from other engineering
-disciplines. It requires that software behave more like a living
+disciplines as it requires that software behave more like a living
 thing, able to adapt to a changing environment.
-
-Naur is clear that the method approach to software engineering is
-relevant to the theory-building view, for instance, providing model
-solutions of typical problems and principles of structuring systems
-consisting of many parts and complicated interactions. However, he
-differs from the methodologist in that the programmer must ultimately
-decide by taking into account the actual program problem to be solved.
 
 \section{Actions to Be Taken}
 
 We take this to mean that if one starts from a well-accepted
 methodology, for instance, the IEEE standards or, in our case, our
 personal favorite, the MIL--STD--498 standards and
-specifications \cite{milstd498}, which consist of proven templates
+specifications \cite{milstd498}, the latter consisting of proven templates
 that have been used for decades and are still employed today to
-engineer the software development effort on countless systems,
+engineer the software development effort on countless systems
 including large and critical ones, then one finds that a key document
 is the so-called \emph{Operational Concept Description} (OCD).
 
@@ -212,23 +189,20 @@ This document describes the general nature of the system upon which
 development is to be done. It summarizes the history of system
 development, operation, and maintenance; identifies the project
 sponsor, acquirer, user, developers, and support organizations;
-identifies environments and sites of operation; and includes any other
-relevant documents. It includes a section titled Section~4:
-Justification for and Nature of Changes. This even includes a
+identifies environments and sites of operation. It includes justification for and the nature of proposed changes. This even includes a
 subsection called Changes Considered but Not Included. The
 justification asks for some provision of deficiencies or limitations
 in the current system or situation that prevent an adequate response to
 these factors.
 
 For us, the authors of the operating concept were certainly well aware
-of the issues that Naur now raises. They would have, if it were
+of the issues that Naur raised. I believe they would have, if it were
 possible at the time, implemented what he is describing. He
-essentially asserts that in order for someone to do adaptive
-maintenance on a code base, they first need a programmer who built the
+essentially asserts that in order for someone to program on a code base that is new to them, they first need a programmer who built the
 original system to teach them about it, akin to how a musician teaches
 a student music or a writer teaches someone how to write. This
 includes discussions of the relation between the program and the
-relevant aspects and activities of the real world, and of the limit
+relevant aspects and activities of the real world, and of the limits
 set on the real-world matters dealt with by the program. Indeed, these
 are the words of Naur.
 
@@ -236,27 +210,23 @@ Of course, no such thing was possible at the time that these military
 standards were written. In fact, no such thing has been possible until
 today.
 
-AI now has the ability to sit in a code base from day one. What we are
-suggesting is that we go from an operating concept \emph{document} to
-what one might call an operating concept \emph{agent}: a professor of
+AI now has the ability to live in a code base from the first iteration. What we are
+suggesting is that we go from an operating concept \emph{document} to an operating concept \emph{agent}: a professor of
 the theory of programming for that particular code base.
 
-The lead engineer on the code base, the person who may not have
-written much code in the code base but was responsible for conceptual
-integrity, has proficiency in describing how the program should
-respond. They can provide a kind of onboarding that, in the past, was
-simply impossible.
-
-Further, they have at their disposal things that were not available in
+Further, we have at our disposal important elements that were not available in
 the past. Previously, we had the code itself and written
-documentation. Now, an agent can also review the Git history. It can
-review all of the pull requests, all the issues that were raised; it
+documentation. Now, an agent can review the Git history. It can
+review all of the pull requests, all the issues that were raised, the comments; it
 can analyze how the system has actually responded to each nuance of
-situation based on the observed behavior.
+situation based on the observed behavior. The lead engineer on the code base, the person who was responsible for conceptual
+integrity, their actions, commits, comments on pull requests, etc., all of this taken together may allow us to recover to a sufficient level of fidelity the theory of the program for that code base.
 
 We feel this is the final keystone in the building of an AI
 programming system for software engineering.
 
+\begingroup
+\setlength{\parskip}{0pt}
 \begin{thebibliography}{9}
 
 \bibitem{brooks1995}
@@ -275,5 +245,6 @@ Peter Naur, ``Programming as Theory Building.''
 Dorothy L.\ Sayers, \emph{The Mind of the Maker}. Methuen, 1941.
 
 \end{thebibliography}
+\endgroup
 
 \end{document}
