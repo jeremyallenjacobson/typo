@@ -1,0 +1,222 @@
+% !TEX program = lualatex
+\ifdefined\mobileformat
+  \documentclass[12pt]{extarticle}
+\else
+  \documentclass[20pt]{extarticle}
+\fi
+\ifdefined\mobileformat
+  \usepackage[left=0.1in, right=0.1in, top=0.25in, bottom=0.35in, headsep=2pt]{geometry}
+  \setlength{\headheight}{14pt}
+\else
+  \usepackage[left=0.1in, right=0.1in, top=0.5in, bottom=0.6in, headsep=4pt]{geometry}
+  \setlength{\headheight}{20pt}
+\fi
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\ifdefined\mobileformat
+  \setlist{nosep, leftmargin=1.2em}
+  \titleformat{\section}{\normalsize\bfseries}{}{0em}{}
+\else
+  \setlist{nosep}
+  \titleformat{\section}{\large\bfseries}{}{0em}{}
+\fi
+\titlespacing*{\section}{0pt}{1ex}{0.6ex}
+\raggedright
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5ex plus 0.2ex}
+\setcounter{secnumdepth}{0}
+
+% --- fonts via fontspec (loads .ttf directly, preserving TT hinting) ---
+\usepackage{fontspec}
+\setmainfont{Gentium Book Plus}[
+  BoldFont = {Gentium Book Plus Bold},
+  ItalicFont = {Gentium Book Plus Italic},
+  BoldItalicFont = {Gentium Book Plus Bold Italic},
+]
+
+% AI emphasis font: bold sans-serif for the A and I in the title
+\newfontfamily\aifont{Helvetica Neue Bold}
+
+\newcommand{\doctitle}{AgIle manifesto}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\scriptsize\doctitle}
+\fancyhead[R]{\scriptsize\thepage}
+\fancypagestyle{firstpage}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyhead[R]{\scriptsize\thepage}}
+
+\begin{document}
+
+% --- Custom title page ---
+\thispagestyle{firstpage}
+\begin{center}
+\vspace*{1ex}
+\ifdefined\mobileformat
+  {\fontsize{28}{34}\selectfont
+    {\aifont\scalebox{1.4}[1]{A}}%
+    g%
+    {\aifont\scalebox{1.4}[1]{I}}%
+    le manifesto}
+\else
+  {\fontsize{42}{50}\selectfont
+    {\aifont\scalebox{1.4}[1]{A}}%
+    g%
+    {\aifont\scalebox{1.4}[1]{I}}%
+    le manifesto}
+\fi
+\\[1.5ex]
+\ifdefined\mobileformat
+  {\large\itshape A Theory of Programming for the\\Post-von Neumann Computer}
+\else
+  {\Large\itshape A Theory of Programming for the\\Post-von Neumann Computer}
+\fi
+\\[0.8ex]
+{\small Reflections on the Optimized AI Conference 2026}
+\\[1.5ex]
+Jeremy Jacobson\\[0.3ex]
+{\small April 2026}
+\end{center}
+\bigskip
+
+The speakers at the Optimized AI Conference 2026, held on March 30th and 31st in Atlanta, Georgia, consistently brought up themes which seem to arise independently; but we will explain here a way of viewing them from a perspective, a theory of sorts that unifies these disparate themes.
+
+We heard many talks about AI platforms as a means of ``laying a paved road.'' I saw in two different talks a means of taking a POC and building it in a cloud environment where a minimal spec was input, describing the application, and the output was built infrastructure in a Google Cloud Platform account (in the case of Paige Bailey's talk), demonstrating some features of AI Studio, or (in the case of the Netflix platform and the Adobe talk) a platform as a means of doing that that's internal to the company.
+
+Many talks emphasized the need to build processes where humans and agents were both first-class citizens. And a talk from the CEO at 66 Degrees elaborated on what he called tokenomics and the need, looking down the road into 2027 and 2028, for organizations as a whole to measure and budget their token spend in the same way that they measure and budget in their P\&L what they spend on talent across the organization.
+
+\section{What is programming?}
+
+Looking back at the origins of the first programming language Fortran, John Backus and his co-creators of the language set out not to build a programming language, but rather to solve an optimization problem: formula translation \cite{backus1957}. Specifically, to take any reasonable algorithm and develop a means, using an electronic computer, to turn that into assembly code executable on the arithmetic unit that powers what we know today as the von Neumann computer architecture.
+
+The target wasn't to produce an executable which was as good as a human could produce, but rather to produce one which was sufficiently performant so as to lower the average cost of development.
+
+This took the form of the Fortran compiler, and out of that effort arose the Fortran programming language.
+
+\section{What is a computer?}
+
+The electronic computer as we know it today took shape, and its design was hardened with the theoretical description provided by von Neumann in 1945 \cite{vonneumann1945}. In this description, an arithmetic unit performs arithmetic operations (addition, subtraction, multiplication, and division) as well as operations like load and store. Today, these operations form what's called the instruction set of any chip.
+
+Programming until very recently works by writing in a higher-level language (whether that be Fortran or Python, you name it), compiling that down into either assembler code, which is one-to-one with the machine code operations and instructions, or to an intermediate representation, for instance, C\# or Java, which are compiled into an intermediate representation, and this intermediate representation can then, on any given machine, be compiled down to an executable on that particular machine.
+
+\section{What is programming now with LLMs?}
+
+Now, let's form an analogy where the model, the LLM model, takes the place of the arithmetic unit. Now this natural language unit has not a short instruction set consisting of primarily arithmetic operations and operations like load and store and so on, but a much more extensive set of operations. Whether you consider that to be any natural language expression or perhaps tool calls is not so important for now, for the purposes of the analogy.
+
+Programming, then, in this analogy is a higher-order language which sits above Python and Fortran and any other programming language of this sort. As before, with Fortran, rather than writing down what that programming language is, we believe it's far more sensible and likely, far more likely to be the correct approach, to position this as an optimization, as a solution to an optimization problem.
+
+Where now, instead of formula translation, we're interested in system translation. Namely, given a reasonable description of a software system, one should be able to take that down into an intermediate representation using a type of compilation. That intermediate representation can, whether it's on Amazon Web Services, Google Cloud, or any environment, be compiled down to an executable in that environment.
+
+The goal is not to make an executable which is better than any human could make, but rather to carry this out in a manner that ensures that the expected cost (in the probability sense of expected value of a random variable) of the software development life cycle, including the development of the code and the maintenance of the code, is lower than it would have been had we developed it with current methods.
+
+And this analogy in this new paradigm, the software engineer's job for the years to come is to create such compilation steps, to measure, and ultimately to be led to a higher-order language which they will program in for the foreseeable future.
+
+In the words of Turing, ``we can see only a short distance ahead, yet we see there is plenty to do'' \cite{turing1950}.
+
+\section{What is the compilation step for these new languages?}
+
+Let's put some hard edges around this analogy. First, let's remember that what we are doing now is not formula translation but a far bigger goal. In the diagram Brooks shares \cite{brooks1995}, the difference between a program and a software product is enhanced along two axes:
+\begin{enumerate}
+  \item To productize it, meaning to take that program, that particular component, and to add things which make it useful to another developer, such as documentation and a means of instructions for running it.
+  \item To make it a maintainable object.
+\end{enumerate}
+
+% TODO: Include the Brooks 3x3 diagram (program -> programming product,
+% program -> programming system component, program -> programming systems product)
+
+In particular, we're doing what software developers have been doing since the earliest days of electronic computers, namely software development. An LLM computer undertakes work that human beings have spent the past eighty years, in fact, adapting and perfecting to the various scarcities of the time, whether that be scarcities in compute (as in the early days of mainframes) to the more recent era of scarcity of developer labor.
+
+We believe that there are certain theoretical results which have been determined and stand on their own regardless of what happens to be scarce at the time. One of them is the formalization of processes for software development, specifically the standards and specifications established in MIL-STD-498 \cite{milstd498}, which was the evolution of lessons learned from the earliest and largest (in fact, to this day, in some ways still the largest in terms of human labor hours) software development projects, including the SAGE system.
+
+This was later codified as the IEEE standards for software engineering, but unfortunately those standards came without the templates, which we believe are themselves a form of programming language syntax for this new computer.
+
+The other is the values and principles laid out in the extreme programming methodology \cite{beck2000}. For those who don't know, this was a precursor to Agile. In fact, Agile as it's known today unfortunately left behind the key engineering lessons that were so valuable about extreme programming. Most of what we know today as Agile is a corporatized project manager approach, which unfortunately many organizations take. It takes the form of the original vibe coding, with product owners writing vague user stories which contractors aim to deliver as quickly as possible, with the same issues one runs into when attempting the same thing with an LLM.
+
+We won't go through all of extreme programming. We'll list a few principles that we've already encountered in this article:
+\begin{enumerate}
+  \item The notion that the codebase belongs to everyone, meaning that everyone is expected to contribute everywhere to the codebase. There are no corners of the codebase that belong to one developer and another corner belongs to another. Indeed, this is exactly the theme we see today, with an emphasis on making AI equal-class citizens with human developers in the development process, able to access the same information and work on the same things.
+  \item Pair programming. We now have the perfect realization of pair programming. Everyone is pair programming with their LLM on their own device, two hands on the keyboard.
+\end{enumerate}
+
+This compilation step, whatever form it takes, we believe will involve choosing a set of standards and specifications for the software engineering process, whether that be MIL-STD-498 or any other that's preferred by the requester of the software. Indeed, there won't be one language, just as today there's no one best language for programming an electronic computer. The breakdown of that spec will occur as defined by the processes and following extreme programming values and principles. In terms of breakdowns into user stories, test-driven development all the way until the final executable.
+
+\section{Where does software go next?}
+
+Well, we've laid out a theory of programming that developers can keep in mind as a way to unify these different themes and keep a goal in mind. If it hasn't been made clear yet, we believe that developers are more critical and will be more valuable than ever before, as the LLM computer is so much more powerful insofar as modes of development, from the early stages of programming. John von Neumann, John Backus, you name it, they all clearly had in mind a means of programming that worked at a higher level. Von Neumann's final series of lectures before he unfortunately passed too early was around questions such as: what level of complexity must a computational process have in order to reproduce itself \cite{vonneumann1966}? Similar themes strongly anticipate everything we're dealing with today with agents. John Backus, in his ACM lecture \cite{backus1978}, lamented that what he called von Neumann languages (the programming languages we know of today) keep our noses in the minutiae of memory addresses and details of the electronic von Neumann computer, which are only indirectly pertinent to the goal of building a software system that accomplishes a goal.
+
+Indeed, one can look back over what's been written in every era of development up till now and find that much of what developers were searching for but couldn't find at the time is now realizable with this more powerful computer.
+
+\section{The post-von Neumann computer}
+
+Von Neumann, as I mentioned, was keenly interested in neural networks, and his final lecture \cite{vonneumann1958}, whether he wrote it down explicitly or not, is debatable; but he would not have been surprised by the developments we see now. Indeed, the connections to biological organisms that he was drawing upon in his lectures now can be completed as a metaphor for the future of software development.
+
+For this, we go back to the theory of the holoarchy of Koestler, as he wrote in his book \emph{The Ghost in the Machine} \cite{koestler1967}.
+
+He points out there how incredible it is that one can take a chicken egg, and it's a single cell and it's relatively simple. The yolk is the contribution of the maternal line, and the small white bit on a fertilized egg when you crack it is the contribution of the paternal line. Incredibly, after fertilization, a process begins which breaks down that yolk and subdivides into smaller parts. One eventual outcome of this process is a newborn chick, but not only that: it's a chick. Its very behavior years later, its personality, color of its feathers, its susceptibility to disease, were already encoded in that egg. How is it that such an incredible amount of information is encoded there? It cannot be as a kind of blueprint where every detail has already been described in the egg. Indeed, the amount of information necessary to describe every detail about how a chicken will behave and how it'll age and so on is innumerable.
+
+In Koestler's theory, he considers a process that involves what he calls not a hierarchy but a holonomy, where you see the repetition of what he calls holons. In our world, these would be things where a user story, in many ways, replicates what one finds in the operating concept document of the MIL-STD-498, but at a different scale. A test is a whole of a user story, but at a different scale.
+
+And in his theory, it is more of a canon of principles and values that are encoded in the egg that's responsible for the birth, the lifetime, and the death of the chicken than any blueprint.
+
+In this analogy now, we take our spec, our yolk, which is the model harness and underlying LLM computer. Upon fertilization, a process begins using extreme programming principles and specifications and standards laid out in codified processes, canons of rules, and so on. Out comes a software product which is governed by these throughout its birth, its lifetime, and its death.
+
+Furthermore, this is a non-deterministic process, as the underlying models themselves are non-deterministic; hence we rather naturally run into mutation, one of the four primary evolutionary forces.
+
+Imagine we run this experiment now. We write a detailed spec for our software product, codify standards of development, Agile principles, and so on, which the LLM computer in our compiler uses to create infrastructure running in, let's say, Amazon Web Services.
+
+Let's suppose this is a user front end. We take our user base. Let's say we divide it up into chunks where we give 10\% one creation, another 10\% a different creation from the same spec, same harness, and model, and so on, and then we evaluate and monitor. If there's a bug, that one dies. If one is especially well liked, we put in place positive selection, and we repeat it for that group of users who had the one that died. Hence we have now positive and negative selection.
+
+All that remains from the four forces is genetic drift, which can occur along two axes for us:
+\begin{enumerate}
+  \item We could, on one axis, make small modifications to the specification, keeping the harness and the model fixed.
+  \item On the other axis, we could fix the specification but make small changes to the harness and model.
+\end{enumerate}
+
+And here we run into a mechanism for building and improving software akin to breeding. Just as a dairy farmer may find good qualities of a dairy cow that they want to reproduce or good qualities of a bull that they want to pass on, we similarly could explore the axis of the specification or the axis of the model and harness, akin to a paternal and maternal line.
+
+Now, this sounds all quite silly, but we mention it because it's in fact something that is immediately applicable and realizable. If one looks at how livestock breeding has been done in the last century, it's become quite scientific, using regression models to refine the process. We see no reason why such models would not be similarly useful for the issues that we are up against right now.
+
+Indeed, it's all but impossible to take one spec compared to another and say, ``Yes, this is definitively better than the other one.'' You can have evals, but you're only measuring it according to that eval. You're not really measuring the real thing in the environment that is of interest. The same goes for the model and harness, so we're really already at a kind of eval crisis. I may be unimaginative, but I frankly don't think there's any other way out.
+
+\begingroup
+\setlength{\parskip}{0pt}
+\begin{thebibliography}{99}
+
+\bibitem{backus1957}
+John W.\ Backus et al., ``The FORTRAN Automatic Coding System.''
+\emph{Proceedings of the Western Joint Computer Conference}, pp.\ 188--198, 1957.
+
+\bibitem{vonneumann1945}
+John von Neumann, ``First Draft of a Report on the EDVAC.'' Technical report, Moore School of Electrical Engineering, University of Pennsylvania, 1945.
+
+\bibitem{turing1950}
+Alan M.\ Turing, ``Computing Machinery and Intelligence.''
+\emph{Mind}, 59(236):433--460, 1950.
+
+\bibitem{brooks1995}
+Frederick P.\ Brooks, Jr., \emph{The Mythical Man-Month: Essays on Software Engineering}. Anniversary Edition. Addison-Wesley, 1995.
+
+\bibitem{milstd498}
+U.S.\ Department of Defense, \emph{MIL-STD-498: Software Development and Documentation}. 1994.
+
+\bibitem{beck2000}
+Kent Beck, \emph{Extreme Programming Explained: Embrace Change}. Addison-Wesley, 2000.
+
+\bibitem{vonneumann1966}
+John von Neumann, \emph{Theory of Self-Reproducing Automata}. Edited and completed by Arthur W.\ Burks. University of Illinois Press, 1966.
+
+\bibitem{backus1978}
+John Backus, ``Can Programming Be Liberated from the von Neumann Style? A Functional Style and Its Algebra of Programs.''
+\emph{Communications of the ACM}, 21(8):613--641, 1978.
+
+\bibitem{vonneumann1958}
+John von Neumann, \emph{The Computer and the Brain}. Yale University Press, 1958.
+
+\bibitem{koestler1967}
+Arthur Koestler, \emph{The Ghost in the Machine}. Hutchinson, 1967.
+
+\end{thebibliography}
+\endgroup
+
+\end{document}
