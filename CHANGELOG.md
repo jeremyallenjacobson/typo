@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [1.4.0] - 2026-04-27
+
+### Added
+- New article "AWS Bedrock Quota Optimization for Anthropic Models" at jeremyjacobson.dev/bedrock-quota/
+- Article derives steady-state request rate, Lambda concurrency, and `max_tokens` targets for Anthropic Claude models on Amazon Bedrock
+- Worked examples for Sonnet 4.5, Sonnet 4.0, and Sonnet 3.7 using fixed input tokens, output tokens, and request duration
+- Operational notes for distinguishing RPM throttling from TPM throttling and sizing boto3 connection pools
+
+### Changed
+- Build script now normalizes zero-padded desktop SVG filenames so articles with 10 or more pages still match the viewer's expected `NAME-N.svg` paths
+
 ## [1.3.0] - 2026-03-27
 
 ### Added

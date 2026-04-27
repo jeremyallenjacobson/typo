@@ -1,0 +1,596 @@
+% !TEX program = lualatex
+\ifdefined\mobileformat
+  \documentclass[12pt]{extarticle}
+\else
+  \documentclass[20pt]{extarticle}
+\fi
+\ifdefined\mobileformat
+  \usepackage[left=0.1in, right=0.1in, top=0.25in, bottom=0.35in, headsep=2pt]{geometry}
+  \setlength{\headheight}{14pt}
+\else
+  \usepackage[left=0.1in, right=0.1in, top=0.5in, bottom=0.6in, headsep=4pt]{geometry}
+  \setlength{\headheight}{20pt}
+\fi
+\usepackage{enumitem}
+\usepackage{titlesec}
+\ifdefined\mobileformat
+  \setlist{nosep, leftmargin=1.2em}
+  \titleformat{\section}{\normalsize\bfseries}{}{0em}{}
+\else
+  \setlist{nosep}
+  \titleformat{\section}{\large\bfseries}{}{0em}{}
+\fi
+\titlespacing*{\section}{0pt}{1ex}{0.6ex}
+\raggedright
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5ex plus 0.2ex}
+\setcounter{secnumdepth}{0}
+
+\usepackage{amsmath,amssymb}
+
+\newcommand{\maxtok}{\text{\texttt{max\_tokens}}}
+\newcommand{\inputmetric}{\text{\texttt{InputTokenCount}}}
+\newcommand{\outputmetric}{\text{\texttt{OutputTokenCount}}}
+\newcommand{\inputtokens}{I}
+\newcommand{\outputtokens}{O}
+\newcommand{\TPM}{\text{TPM}}
+\newcommand{\RPM}{\text{RPM}}
+
+% --- fonts via fontspec (loads .ttf directly, preserving TT hinting) ---
+\usepackage{fontspec}
+\setmainfont{Gentium Book Plus}[
+  BoldFont = {Gentium Book Plus Bold},
+  ItalicFont = {Gentium Book Plus Italic},
+  BoldItalicFont = {Gentium Book Plus Bold Italic},
+]
+
+\newcommand{\doctitle}{AWS Bedrock Quota Optimization for Anthropic Models}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyhead[L]{\scriptsize\doctitle}
+\fancyhead[R]{\scriptsize\thepage}
+\fancypagestyle{firstpage}{\fancyhf{}\renewcommand{\headrulewidth}{0pt}\fancyhead[R]{\scriptsize\thepage}}
+
+\title{\doctitle}
+\author{Jeremy Jacobson}
+\date{April 27, 2026}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{firstpage}
+
+\section{Objective}
+
+The objective of this article is to answer the following question. Given a fixed number of input tokens, a fixed number of output tokens, and a fixed time to complete a Bedrock API request for Anthropic Claude models version 3.7 and later, what Lambda concurrency and what $\maxtok$ value should we target in order to maximize throughput? Here throughput means model tokens per minute:
+\[
+\begin{aligned}
+\text{throughput per minute}
+&= \text{input tokens per minute}\\
+&\quad + \text{output tokens per minute}.
+\end{aligned}
+\]
+
+We ignore the Tokens Per Day (TPD) quota, we also ignore prompt caching, and work in the setting where we assume the number of input tokens, output tokens, and time to complete a request, are constant across all requests. AWS defines TPD as a model-level quota on daily token use and notes that, by default, it is $\TPM \times 24 \times 60$, though new AWS accounts have reduced quotas \cite{bedrock-quotas}.
+
+Let
+\[
+\begin{aligned}
+\maxtok &= \text{the max tokens parameter chosen for the request},\\
+\inputtokens &= \text{input tokens per request},\\
+\outputtokens &= \text{output tokens per request},\\
+t &= \text{seconds per request},
+\end{aligned}
+\]
+Here $\inputtokens$ denotes the CloudWatch runtime metric $\inputmetric$, and $\outputtokens$ denotes $\outputmetric$.
+
+For Anthropic Claude Sonnet 3.7 and later on Bedrock, output tokens have a quota burndown rate. This means that the final quota consumed by one completed request is
+\[
+\inputtokens + 5\outputtokens.
+\]
+
+\section{In-Flight Requests}
+
+The first point to settle is the meaning of concurrency. In this article, concurrency means the number of \emph{in-flight} requests: requests that have begun but have not yet completed.
+
+There are two ways to achieve the same in-flight count. One is a volley pattern: send $n$ requests at approximately the same time, wait for them to complete, and then send another $n$ requests. The other is a steady-state pattern: divide the request time $t$ into $n$ intervals, send one request, wait one interval, send the next request, and continue. After warm-up, this keeps about $n$ requests in flight.
+
+The steady-state pattern is the cleaner object for analysis. If we send $r$ requests per minute and each request takes $t$ seconds, then the number of in-flight requests is
+\[
+n \;=\; r \cdot \frac{t}{60}.
+\]
+Equivalently,
+\[
+r \;=\; \frac{60n}{t}.
+\]
+
+This conversion is important because Lambda concurrency is an in-flight quantity, while Bedrock's RPM and TPM quotas are per-minute quantities. AWS's scaling guidance discusses these as rolling-window quotas \cite{bedrock-scale}.
+
+\section{The Reservation Model}
+
+AWS Bedrock applies token quota at several points in the request lifecycle. At the start of a request, assuming the RPM quota has not already been exceeded, Bedrock deducts
+\[
+\inputtokens + \maxtok.
+\]
+During processing, AWS says that ``the quota consumed by the request is periodically adjusted to account for the actual number of output tokens generated'' \cite{bedrock-burndown}. The AWS scaling article says the same thing another way: ``Bedrock progressively releases unused reserved tokens as actual output is produced'' \cite{bedrock-scale}. At the end of the request, for Sonnet 3.7 and later, the quota burn settles to
+\[
+\inputtokens + 5\outputtokens.
+\]
+
+If $\maxtok < 5\outputtokens$, then the request must eventually consume more quota than was reserved at admission. In other words, before the target output length is reached, the request crosses the point
+\[
+5y > \maxtok.
+\]
+If the account is already at the TPM limit when that adjustment is attempted, we assume in this article that the in-flight request can be throttled. This is the conservative assumption. If such a request fails, the caller must make another request, wait for quota to be available, and repeat work that was already partly done.
+
+To avoid that operating regime, we impose
+\[
+\maxtok \;\geq\; 5\outputtokens.
+\]
+
+\section{Request Rate}
+
+There are three constraints on the steady-state request rate $r$.
+
+\textbf{RPM constraint.} We cannot start more than $\RPM$ requests per minute:
+\[
+r \;\leq\; \RPM.
+\]
+
+\textbf{Final TPM burn.} Each completed request burns $\inputtokens + 5\outputtokens$ quota tokens, so $r$ requests per minute burn
+\[
+r(\inputtokens + 5\outputtokens)
+\]
+quota tokens per minute. Therefore
+\[
+r(\inputtokens + 5\outputtokens) \;\leq\; \TPM,
+\]
+or
+\[
+r \;\leq\; \frac{\TPM}{\inputtokens + 5\outputtokens}.
+\]
+
+\textbf{In-flight reservation.} While requests are in flight, each one reserves $\inputtokens + \maxtok$. Since there are $n = rt/60$ requests in flight, their total in-flight reservation is
+\[
+\frac{rt}{60}(\inputtokens + \maxtok).
+\]
+This cannot exceed the TPM quota, so
+\[
+\frac{rt}{60}(\inputtokens + \maxtok) \;\leq\; \TPM.
+\]
+Solving for $r$ gives
+\[
+r \;\leq\; \frac{60\TPM}{t(\inputtokens + \maxtok)}.
+\]
+
+Putting these together, $r_{\max}(\maxtok)$ is the smallest of the three quantities
+\[
+\begin{aligned}
+&\RPM,\\
+&\frac{\TPM}{\inputtokens + 5\outputtokens},\\
+&\frac{60\TPM}{t(\inputtokens + \maxtok)}.
+\end{aligned}
+\]
+
+The corresponding throughput is
+\[
+\begin{aligned}
+\text{throughput}(\maxtok)
+&= (\inputtokens + \outputtokens) r_{\max}(\maxtok),
+\end{aligned}
+\]
+and the corresponding in-flight concurrency is
+\[
+n_{\max}(\maxtok) \;=\; \frac{t}{60}r_{\max}(\maxtok).
+\]
+
+\section{Choosing \texttt{max\_tokens}}
+
+Given $\inputtokens$, $\outputtokens$, and $t$, choose $\maxtok$ so that the in-flight reservation constraint is not the binding constraint. The non-reservation rate limit $r_0$ is the smaller of
+\[
+\begin{aligned}
+&\RPM,\\
+&\frac{\TPM}{\inputtokens + 5\outputtokens}.
+\end{aligned}
+\]
+Therefore we want
+\[
+\frac{60\TPM}{t(\inputtokens + \maxtok)} \;\geq\; r_0.
+\]
+Solving for $\maxtok$,
+\[
+\maxtok \;\leq\; \frac{60\TPM}{t r_0} - \inputtokens.
+\]
+
+At the same time, the conservative no-mid-request-throttle rule requires
+\[
+\maxtok \;\geq\; 5\outputtokens.
+\]
+
+Thus $\maxtok$ should be chosen from the interval
+\[
+5\outputtokens
+\;\leq\;
+\maxtok
+\;\leq\;
+\frac{60\TPM}{t r_0} - \inputtokens
+\]
+Any value in this interval achieves the same maximum steady-state throughput. The left endpoint, $\maxtok = 5\outputtokens$, is the best operational target because it avoids upward quota adjustment while reserving as little excess quota as possible.
+
+In the common TPM-bound case,
+\[
+r_0 = \frac{\TPM}{\inputtokens + 5\outputtokens}.
+\]
+The upper endpoint simplifies to
+\[
+\maxtok \;\leq\; \frac{60(\inputtokens + 5\outputtokens)}{t} - \inputtokens.
+\]
+
+If $t < 60$, then $\maxtok = 5\outputtokens$ is always within the throughput-maximizing interval. Larger values of $\maxtok$ may also be throughput-neutral for a while, but they reduce headroom and eventually make in-flight reservation the binding constraint.
+
+\section{Operational Signals}
+
+The AWS scaling article gives two diagnostic error strings \cite{bedrock-scale}. RPM throttling appears as
+\[
+\text{``Too many requests, please wait before trying again.''}
+\]
+TPM throttling appears as
+\[
+\text{``Too many tokens, please wait before trying again.''}
+\]
+
+The same article notes a separate high-concurrency issue: the boto3 connection pool can be too small if left at its default of 10. A larger pool can be set through botocore configuration:
+\[
+\begin{aligned}
+\texttt{max\_pool\_connections} &= 50,\\
+\texttt{retries} &= \{\texttt{mode: adaptive, max\_attempts: 5}\}.
+\end{aligned}
+\]
+
+\section{Sonnet 4.5 Example}
+
+Suppose Sonnet 4.5 has
+\[
+\TPM = 5{,}000{,}000, \qquad \RPM = 10{,}000.
+\]
+Now take the production averages as fixed constants:
+\[
+\inputtokens = 4{,}400, \qquad
+\outputtokens = 1{,}200, \qquad
+t = 16.
+\]
+
+The quota burn per request is
+\[
+\inputtokens + 5\outputtokens
+= 4{,}400 + 5 \cdot 1{,}200
+= 10{,}400.
+\]
+The model tokens per request are
+\[
+\inputtokens + \outputtokens
+= 4{,}400 + 1{,}200
+= 5{,}600.
+\]
+
+The conservative $\maxtok$ target is
+\[
+\maxtok^* = 5\outputtokens = 5 \cdot 1{,}200 = 6{,}000.
+\]
+At this value, the initial reservation equals the expected final burn:
+\[
+\inputtokens + \maxtok^*
+= 4{,}400 + 6{,}000
+= 10{,}400
+= \inputtokens + 5\outputtokens.
+\]
+
+The two rate ceilings are
+\[
+\begin{aligned}
+&\RPM = 10{,}000,\\
+&\frac{\TPM}{\inputtokens + 5\outputtokens}
+=
+\frac{5{,}000{,}000}{10{,}400}
+=
+480.77.
+\end{aligned}
+\]
+Thus
+\[
+r_0 = 480.77
+\]
+requests per minute. This is TPM-bound, not RPM-bound.
+
+The fractional in-flight concurrency needed to sustain that rate is
+\[
+n^*
+=
+\frac{t}{60}r_0
+=
+\frac{16}{60} \cdot 480.77
+=
+128.21
+\]
+
+If Lambda concurrency is the only control knob and requests are always available, the integer target should be rounded down:
+\[
+n = 128.
+\]
+That gives
+\[
+r = \frac{60n}{t}
+  = \frac{60 \cdot 128}{16}
+  = 480
+\]
+requests per minute. The corresponding quota burn is
+\[
+480 \cdot 10{,}400 = 4{,}992{,}000
+\]
+quota tokens per minute, just under the $5{,}000{,}000$ TPM quota. The corresponding throughput is
+\[
+480 \cdot 5{,}600
+= 2{,}688{,}000
+\]
+tokens per minute.
+
+The theoretical fractional-concurrency throughput is slightly higher:
+\[
+480.77 \cdot 5{,}600
+=
+2{,}692{,}307.69
+\]
+tokens per minute.
+
+Finally, the throughput-neutral range of $\maxtok$ values is
+\[
+6{,}000
+\;\leq\;
+\maxtok
+\;\leq\;
+\frac{60 \cdot 10{,}400}{16} - 4{,}400
+=
+34{,}600.
+\]
+The lower endpoint, $\maxtok = 6{,}000$, is the target because it matches expected quota burn without adding unnecessary in-flight reservation.
+
+\section{Sonnet 4.0 Example}
+
+Suppose Sonnet 4.0 has
+\[
+\TPM = 200{,}000, \qquad \RPM = 200.
+\]
+Now take the production averages as fixed constants:
+\[
+\inputtokens = 4{,}400, \qquad
+\outputtokens = 900, \qquad
+t = 11.
+\]
+
+The quota burn per request is
+\[
+\inputtokens + 5\outputtokens
+= 4{,}400 + 5 \cdot 900
+= 8{,}900.
+\]
+The model tokens per request are
+\[
+\inputtokens + \outputtokens
+= 4{,}400 + 900
+= 5{,}300.
+\]
+
+The conservative $\maxtok$ target is
+\[
+\maxtok^* = 5\outputtokens = 5 \cdot 900 = 4{,}500.
+\]
+At this value, the initial reservation equals the expected final burn:
+\[
+\inputtokens + \maxtok^*
+= 4{,}400 + 4{,}500
+= 8{,}900
+= \inputtokens + 5\outputtokens.
+\]
+
+The two rate ceilings are
+\[
+\begin{aligned}
+&\RPM = 200,\\
+&\frac{\TPM}{\inputtokens + 5\outputtokens}
+=
+\frac{200{,}000}{8{,}900}
+=
+22.47.
+\end{aligned}
+\]
+Thus
+\[
+r_0 = 22.47
+\]
+requests per minute. This is TPM-bound, not RPM-bound.
+
+The fractional in-flight concurrency needed to sustain that rate is
+\[
+n^*
+=
+\frac{t}{60}r_0
+=
+\frac{11}{60} \cdot 22.47
+=
+4.12.
+\]
+
+If Lambda concurrency is the only control knob and requests are always available, the integer target should be rounded down:
+\[
+n = 4.
+\]
+That gives
+\[
+r = \frac{60n}{t}
+  = \frac{60 \cdot 4}{11}
+  = 21.82
+\]
+requests per minute. The corresponding quota burn is
+\[
+21.82 \cdot 8{,}900 = 194{,}181.82
+\]
+quota tokens per minute, just under the $200{,}000$ TPM quota. The corresponding throughput is
+\[
+21.82 \cdot 5{,}300
+= 115{,}636.36
+\]
+tokens per minute.
+
+The theoretical fractional-concurrency throughput is slightly higher:
+\[
+22.47 \cdot 5{,}300
+=
+119{,}101.12
+\]
+tokens per minute.
+
+Finally, the throughput-neutral range of $\maxtok$ values is
+\[
+4{,}500
+\;\leq\;
+\maxtok
+\;\leq\;
+\frac{60 \cdot 8{,}900}{11} - 4{,}400
+=
+44{,}145.45.
+\]
+The lower endpoint, $\maxtok = 4{,}500$, is the target because it matches expected quota burn without adding unnecessary in-flight reservation.
+
+\section{Sonnet 3.7 Example}
+
+Suppose Sonnet 3.7 has
+\[
+\TPM = 1{,}000{,}000, \qquad \RPM = 250.
+\]
+Now take the production averages as fixed constants:
+\[
+\inputtokens = 4{,}400, \qquad
+\outputtokens = 1{,}100, \qquad
+t = 18.
+\]
+
+The quota burn per request is
+\[
+\inputtokens + 5\outputtokens
+= 4{,}400 + 5 \cdot 1{,}100
+= 9{,}900.
+\]
+The model tokens per request are
+\[
+\inputtokens + \outputtokens
+= 4{,}400 + 1{,}100
+= 5{,}500.
+\]
+
+The conservative $\maxtok$ target is
+\[
+\maxtok^* = 5\outputtokens = 5 \cdot 1{,}100 = 5{,}500.
+\]
+At this value, the initial reservation equals the expected final burn:
+\[
+\inputtokens + \maxtok^*
+= 4{,}400 + 5{,}500
+= 9{,}900
+= \inputtokens + 5\outputtokens.
+\]
+
+The two rate ceilings are
+\[
+\begin{aligned}
+&\RPM = 250,\\
+&\frac{\TPM}{\inputtokens + 5\outputtokens}
+=
+\frac{1{,}000{,}000}{9{,}900}
+=
+101.01.
+\end{aligned}
+\]
+Thus
+\[
+r_0 = 101.01
+\]
+requests per minute. This is TPM-bound, not RPM-bound.
+
+The fractional in-flight concurrency needed to sustain that rate is
+\[
+n^*
+=
+\frac{t}{60}r_0
+=
+\frac{18}{60} \cdot 101.01
+=
+30.30.
+\]
+
+If Lambda concurrency is the only control knob and requests are always available, the integer target should be rounded down:
+\[
+n = 30.
+\]
+That gives
+\[
+r = \frac{60n}{t}
+  = \frac{60 \cdot 30}{18}
+  = 100
+\]
+requests per minute. The corresponding quota burn is
+\[
+100 \cdot 9{,}900 = 990{,}000
+\]
+quota tokens per minute, just under the $1{,}000{,}000$ TPM quota. The corresponding throughput is
+\[
+100 \cdot 5{,}500
+= 550{,}000
+\]
+tokens per minute.
+
+The theoretical fractional-concurrency throughput is slightly higher:
+\[
+101.01 \cdot 5{,}500
+=
+555{,}555.56
+\]
+tokens per minute.
+
+Finally, the throughput-neutral range of $\maxtok$ values is
+\[
+5{,}500
+\;\leq\;
+\maxtok
+\;\leq\;
+\frac{60 \cdot 9{,}900}{18} - 4{,}400
+=
+28{,}600.
+\]
+The lower endpoint, $\maxtok = 5{,}500$, is the target because it matches expected quota burn without adding unnecessary in-flight reservation.
+
+\section{References}
+
+\begingroup
+\setlength{\parskip}{0pt}
+\begin{thebibliography}{9}
+
+\bibitem{bedrock-burndown}
+AWS, \emph{How tokens are counted in Amazon Bedrock} (burndown rates,
+deduction formulas, worked examples).\\
+\texttt{\small docs.aws.amazon.com/bedrock/latest/userguide/quotas-token-burndown.html}
+
+\bibitem{bedrock-quotas}
+AWS, \emph{Quotas for Amazon Bedrock} (per-model TPM, RPM, TPD limits).\\
+\texttt{\small docs.aws.amazon.com/bedrock/latest/userguide/quotas.html}
+
+\bibitem{bedrock-scale}
+AWS, \emph{Optimize your applications for scale and reliability on Amazon
+Bedrock} (rolling-window behavior, progressive quota release).\\
+\texttt{\small aws.amazon.com/blogs/machine-learning/\discretionary{}{}{}optimize-your-applications-for-scale-and-reliability-on-amazon-bedrock/}
+
+\end{thebibliography}
+\endgroup
+
+\end{document}

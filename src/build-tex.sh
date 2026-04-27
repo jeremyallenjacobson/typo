@@ -31,6 +31,15 @@ if [ ! -f "${NAME}.dvi" ]; then echo "Error: lualatex failed to produce ${NAME}.
 echo "Converting to SVG (desktop) ..."
 dvisvgm --font-format=woff2 --bbox=papersize --precision=6 --page=1- "${NAME}.dvi" > /dev/null 2>&1
 
+# Rename desktop SVGs: Y-A-T-P-01.svg -> Y-A-T-P-1.svg
+for f in ${NAME}-[0-9]*.svg; do
+  # Extract number and strip leading zeros
+  num=$(echo "$f" | sed "s/${NAME}-0*\([0-9][0-9]*\)\.svg/\1/")
+  if [ "$f" != "${NAME}-${num}.svg" ]; then
+    mv "$f" "${NAME}-${num}.svg"
+  fi
+done
+
 PAGES=$(ls -1 ${NAME}-[0-9]*.svg 2>/dev/null | wc -l)
 
 # --- Mobile build ---
